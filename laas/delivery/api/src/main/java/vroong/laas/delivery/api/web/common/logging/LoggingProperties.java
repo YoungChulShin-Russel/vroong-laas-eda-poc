@@ -1,4 +1,4 @@
-package vroong.laas.delivery.api.web.common;
+package vroong.laas.delivery.api.web.common.logging;
 
 import java.util.ArrayList;
 import java.util.List;

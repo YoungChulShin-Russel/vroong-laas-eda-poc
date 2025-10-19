@@ -1,4 +1,4 @@
-package vroong.laas.delivery.api.web.common;
+package vroong.laas.delivery.api.web.common.logging;
 
 import static net.logstash.logback.argument.StructuredArguments.keyValue;
 

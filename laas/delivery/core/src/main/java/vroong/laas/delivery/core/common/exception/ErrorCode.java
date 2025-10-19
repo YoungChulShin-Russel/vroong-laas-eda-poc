@@ -39,8 +39,7 @@ public enum ErrorCode {
   INVALID_DELIVERY("배송 상태 변경이 유효하지 않습니다"),
 
   // 5xx: 서버 에러
-  /** 알 수 없는 서버 에러 */
-  INTERNAL_SERVER_ERROR("서버 오류가 발생했습니다"),
+  COMMON_SYSTEM_ERROR("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
 
   /** 데이터베이스 에러 */
   DATABASE_ERROR("데이터베이스 오류가 발생했습니다"),
