@@ -2,11 +2,7 @@ package vroong.laas.delivery.core.domain.delivery;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Random;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 /**
  * 배송번호 Value Object
@@ -25,9 +21,6 @@ public record DeliveryNumber(String value) {
         }
         if (!value.startsWith(PREFIX)) {
             throw new IllegalArgumentException("배송번호는 " + PREFIX + "로 시작해야 합니다");
-        }
-        if (value.length() != 19) { // DEL- + 12자리 + 3자리 = 19자리
-            throw new IllegalArgumentException("배송번호 형식이 올바르지 않습니다");
         }
     }
 

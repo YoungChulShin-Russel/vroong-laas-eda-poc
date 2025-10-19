@@ -25,6 +25,10 @@ public class ApiResponse<T> {
         .build();
   }
 
+  public static <T> ApiResponse<T> success() {
+    return success(null, null);
+  }
+
   public static <T> ApiResponse<T> success(T data) {
     return success(data, null);
   }

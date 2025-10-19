@@ -26,6 +26,4 @@ public class RoutingController {
 
     return new RegisterRoutingTemplateResponse(routingTemplateInfo.routingTemplateId());
   }
-
-
 }

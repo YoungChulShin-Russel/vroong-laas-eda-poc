@@ -50,4 +50,12 @@ public class Delivery extends ConcurrentEntity {
         command.deliveryFee(),
         DeliveryStatus.STARTED);
   }
+
+  public void pickup() {
+    this.status = DeliveryStatus.PICKED_UP;
+  }
+
+  public void deliver() {
+    this.status = DeliveryStatus.DELIVERED;
+  }
 }
