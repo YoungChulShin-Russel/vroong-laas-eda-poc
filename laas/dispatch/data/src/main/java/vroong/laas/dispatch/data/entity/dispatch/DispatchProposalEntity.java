@@ -79,4 +79,19 @@ public class DispatchProposalEntity extends BaseEntity {
             .proposedAt(Instant.now())
             .build();
     }
+
+    public void accept() {
+        this.status = DispatchProposalStatus.ACCEPTED;
+        this.respondedAt = Instant.now();
+    }
+
+    public void decline() {
+        this.status = DispatchProposalStatus.DECLINED;
+        this.respondedAt = Instant.now();
+    }
+
+    public void expire() {
+        this.status = DispatchProposalStatus.EXPIRED;
+        this.respondedAt = Instant.now();
+    }
 }

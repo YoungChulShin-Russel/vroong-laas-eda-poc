@@ -4,6 +4,6 @@ public enum DispatchProposalStatus {
     PROPOSED,
     ACCEPTED,
     DECLINED,
-    TIMEOUT,
+    EXPIRED,
     CANCELLED
 }
