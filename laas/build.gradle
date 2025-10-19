@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.0-M3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.vroong.laas'
+version = '0.0.1-SNAPSHOT'
+description = 'vroong laas'
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url = 'https://repo.spring.io/snapshot' }
+        maven {
+            name = "vroong nexus"
+            url "https://nexus.mm.meshkorea.net/repository/maven-public/"
+            credentials {
+                username meshRepoUser
+                password meshRepoPassword
+            }
+        }
+    }
+
+    apply plugin: "java"
+    apply plugin: "io.spring.dependency-management"
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:4.0.0-M3"
+        }
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+    dependencies {
+        // Lombok - 보일러플레이트 코드 제거 (@Getter, @Builder 등)
+        // https://projectlombok.org/
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+
+        testCompileOnly 'org.projectlombok:lombok'
+        testAnnotationProcessor 'org.projectlombok:lombok'
+
+        // Spring Boot Test - JUnit 5, AssertJ, Mockito 포함
+        // https://spring.io/projects/spring-boot
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+        // Fixture Monkey - 테스트 데이터 자동 생성 (jqwik 기반)
+        // https://github.com/naver/fixture-monkey
+        testImplementation "com.navercorp.fixturemonkey:fixture-monkey-starter:${fixtureMonkeyVersion}"
+
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}

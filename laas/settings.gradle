@@ -1,0 +1,6 @@
+rootProject.name = 'laas'
+
+include 'delivery'
+include 'delivery:api'
+include 'delivery:core'
+include 'delivery:infrastructure'
