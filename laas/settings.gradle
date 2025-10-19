@@ -4,3 +4,8 @@ include 'delivery'
 include 'delivery:api'
 include 'delivery:core'
 include 'delivery:infrastructure'
+
+include 'dispatch'
+include 'dispatch:core'
+include 'dispatch:core-enum'
+include 'dispatch:data'

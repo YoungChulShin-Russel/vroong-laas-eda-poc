@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(":dispatch:core-enum")
+    implementation project(":dispatch:data")
+
+    implementation 'org.springframework.data:spring-data-jpa'
+}
