@@ -8,7 +8,7 @@ import vroong.laas.delivery.core.domain.routing.info.RoutingTemplateInfo;
 
 @Service
 @RequiredArgsConstructor
-public class RoutingTemplateModifyService {
+public class RoutingModifyService {
 
   private final RoutingTemplateRepository repository;
 

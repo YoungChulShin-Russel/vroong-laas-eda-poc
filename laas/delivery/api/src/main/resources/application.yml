@@ -1,0 +1,130 @@
+# ============================================
+# 공통 설정 (모든 환경에서 공유)
+# ============================================
+spring:
+  profiles:
+    active: local  # 기본 프로파일: local
+  application:
+    name: delivery-service
+  lifecycle:  # Graceful Shutdown 타임아웃 설정
+    timeout-per-shutdown-phase: 30s # 진행 중인 요청을 완료할 때까지 최대 30초 대기
+  jackson:  # Jackson JSON 직렬화 설정
+    default-property-inclusion: non_null  # null 필드 제외 (REST API 모범 사례)
+  jpa:  # JPA/Hibernate 설정
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop  # Flyway가 스키마 관리
+    properties:
+      hibernate:
+        format_sql: true     # 로컬: SQL 포맷팅
+    show-sql: true           # 로컬: SQL 로그 출력
+
+server:
+  port: 8082
+  shutdown: graceful  # Graceful Shutdown 활성화
+
+management:
+  # Actuator 엔드포인트 기본 설정
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info  # 기본: health, info만 노출 (환경별로 오버라이드)
+
+  # Health Check 상세 설정
+  endpoint:
+    health:
+      show-details: when-authorized  # 인증된 경우에만 상세 정보 노출
+      probes:
+        enabled: true  # Kubernetes Liveness/Readiness Probe 활성화
+
+      # Liveness/Readiness Probe 그룹 설정 (DB 제외)
+      group:
+        liveness:
+          include: livenessState        # 애플리케이션 생존 여부만
+        readiness:
+          include: readinessState       # 트래픽 수신 준비 여부만
+
+  health:
+    livenessstate:
+      enabled: true  # Liveness State 활성화
+    readinessstate:
+      enabled: true  # Readiness State 활성화
+    db:
+      enabled: true  # DB Health Check 활성화 (모니터링용 - /actuator/health)
+    diskspace:
+      enabled: true  # Disk Space Health Check 활성화 (모니터링용)
+
+  # Metrics 설정
+  metrics:
+    enable:
+      jvm: true
+      process: true
+      system: true
+      http: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true  # HTTP 요청 히스토그램 활성화
+
+  # Tracing 설정
+  tracing:
+    enabled: true
+    baggage:
+      enabled: true
+      remote-fields:
+        - x-request-id
+        - x-user-id
+      correlation:
+        enabled: true
+        fields:
+          - x-user-id
+# Local DataSource (Writer/Reader 동일 - localhost:3306)
+dispatch:
+  datasource:
+    # Writer DataSource (Local - localhost)
+    write:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/delivery?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      username: ${DB_USERNAME:laas_user}
+      password: ${DB_PASSWORD:laas_password}
+      hikari:
+        pool-name: DispatchWriterPool
+        maximum-pool-size: 5  # 로컬: 작은 Pool
+        minimum-idle: 2
+        connection-timeout: 3000
+        idle-timeout: 600000
+        max-lifetime: 1800000
+
+    # Reader DataSource (Local - localhost, Writer와 동일)
+    read:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/delivery?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      username: ${DB_USERNAME:laas_user}
+      password: ${DB_PASSWORD:laas_password}
+      hikari:
+        pool-name: DispatchReaderPool
+        maximum-pool-size: 10  # 로컬: 조회용으로 조금 더 크게
+        minimum-idle: 2
+        connection-timeout: 3000
+        idle-timeout: 600000
+        max-lifetime: 1800000
+
+## Kafka/Outbox 설정 (Local 환경)
+#outbox:
+#  event:
+#    publisher:
+#      bootstrap-servers: localhost:9092  # 로컬 Kafka (실제 연결 안 해도 Bean 생성용)
+#      enabled: true
+
+# 로그 설정
+logging:
+  level:
+    vroong.laas.delivery: DEBUG  # 로컬: 상세 로그
+    org.hibernate.SQL: DEBUG
+
+app:
+  logging:
+    exclude-patterns:
+      - /actuator/**
+      - /health
+      - /favicon.ico

@@ -25,7 +25,7 @@ services:
       retries: 5
 
   zookeeper:
-    container_name: order-zookeeper
+    container_name: laas-zookeeper
     image: confluentinc/cp-zookeeper:7.4.4
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -33,7 +33,7 @@ services:
     platform: linux/arm64
 
   kafka:
-    container_name: order-kafka
+    container_name: laas-kafka
     image: confluentinc/cp-kafka:7.4.4
     depends_on:
       - zookeeper
