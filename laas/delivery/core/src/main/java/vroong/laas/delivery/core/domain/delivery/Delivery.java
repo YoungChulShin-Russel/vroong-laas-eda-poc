@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import vroong.laas.delivery.core.domain.ConcurrentEntity;
@@ -17,6 +18,7 @@ import vroong.laas.delivery.core.domain.delivery.command.RegisterDeliveryCommand
 @Entity
 @Table(name = "deliveries")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Delivery extends ConcurrentEntity {
 
   @Column(name = "delivery_number")
@@ -35,19 +37,6 @@ public class Delivery extends ConcurrentEntity {
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
   private DeliveryStatus status;
-
-  private Delivery(
-      DeliveryNumber deliveryNumber,
-      Long orderId,
-      Long agentId,
-      BigDecimal deliveryFee,
-      DeliveryStatus status) {
-    this.deliveryNumber = deliveryNumber;
-    this.orderId = orderId;
-    this.agentId = agentId;
-    this.deliveryFee = deliveryFee;
-    this.status = status;
-  }
 
   public static Delivery register(
       RegisterDeliveryCommand command,

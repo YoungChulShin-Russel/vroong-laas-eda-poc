@@ -13,6 +13,7 @@ public class DeliveryModifyService {
   private final DeliveryNumberGenerator deliveryNumberGenerator;
   private final DeliveryRepository deliveryRepository;
   private final DeliveryDispatchMappingRepository deliveryDispatchMappingRepository;
+  private final DeliveryHistoryRepository deliveryHistoryRepository;
 
   @Transactional
   public DeliveryInfo registerDelivery(RegisterDeliveryCommand command) {
@@ -21,6 +22,8 @@ public class DeliveryModifyService {
     deliveryRepository.save(delivery);
 
     // delivery history
+    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery);
+    deliveryHistoryRepository.save(deliveryHistory);
 
     // delivery-dispatch mapping
     DeliveryDispatchMapping deliveryDispatchMapping =
