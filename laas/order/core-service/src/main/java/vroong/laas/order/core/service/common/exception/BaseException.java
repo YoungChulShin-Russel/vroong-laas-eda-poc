@@ -2,7 +2,6 @@ package vroong.laas.order.core.service.common.exception;
 
 
 import lombok.Getter;
-import vroong.laas.dispatch.core.common.exception.ErrorCode;
 
 /**
  * 모든 커스텀 예외의 기반 클래스
