@@ -1,0 +1,31 @@
+dependencies {
+    implementation project(':order:core-enum')
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+
+    // Flyway (DB 마이그레이션)
+//    implementation 'org.flywaydb:flyway-core'
+//    runtimeOnly 'org.flywaydb:flyway-mysql'
+
+    // kafka event 발행
+//    implementation 'com.vroong.msa.kafka:vroong-msa-kafka-event:1.0.7'
+//    implementation 'com.vroong.msa.kafka:vroong-msa-kafka-event-publisher:0.0.15'
+//    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+//    implementation 'org.springframework.kafka:spring-kafka'
+
+    // MySQL Connector/J - Local 환경용 (Docker MySQL) + AWS Wrapper가 내부적으로 사용
+    // https://dev.mysql.com/downloads/connector/j/
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // AWS Advanced JDBC Wrapper - Production 환경용 (Aurora MySQL)
+    // https://github.com/aws/aws-advanced-jdbc-wrapper
+    // 빠른 Failover (1-2초), Read Replica 자동 로드밸런싱, Read/Write Splitting
+    implementation 'software.amazon.jdbc:aws-advanced-jdbc-wrapper:2.6.4'
+
+    testRuntimeOnly 'com.h2database:h2'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+}

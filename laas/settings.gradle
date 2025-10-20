@@ -10,3 +10,8 @@ include 'dispatch:core'
 include 'dispatch:core-enum'
 include 'dispatch:data'
 include 'dispatch:api'
+
+include 'order'
+include 'order:core-service'
+include 'order:core-enum'
+include 'order:data'
