@@ -10,6 +10,7 @@ import vroong.laas.order.core.service.domain.order.Destination;
 import vroong.laas.order.core.service.domain.order.NewOrderItem;
 import vroong.laas.order.core.service.domain.order.Order;
 import vroong.laas.order.core.service.domain.order.OrderNumber;
+import vroong.laas.order.core.service.domain.order.OrderNumberGenerator;
 import vroong.laas.order.core.service.domain.order.Origin;
 import vroong.laas.order.data.entity.order.OrderEntity;
 import vroong.laas.order.data.entity.order.OrderItemEntity;
@@ -22,17 +23,20 @@ import vroong.laas.order.data.entity.order.OrderRepository;
 @RequiredArgsConstructor
 public class OrderCreator {
 
+  private final OrderNumberGenerator orderNumberGenerator;
   private final OrderRepository orderRepository;
   private final OrderItemRepository orderItemRepository;
   private final OrderLocationRepository orderLocationRepository;
 
   @Transactional
   public Order create(
-      OrderNumber orderNumber,
       List<NewOrderItem> items,
       Origin origin,
       Destination destination
   ) {
+    // generate order number
+    OrderNumber orderNumber = orderNumberGenerator.generate();
+
     // save order
     OrderEntity orderEntity = OrderEntity.builder()
         .orderNumber(orderNumber.value())

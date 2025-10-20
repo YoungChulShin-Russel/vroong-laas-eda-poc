@@ -37,6 +37,10 @@ public abstract class BaseEntity {
     this.entityStatus = EntityStatus.DELETED;
   }
 
+  public boolean isActive() {
+    return entityStatus == EntityStatus.ACTIVE;
+  }
+
   @Override
   public final boolean equals(Object o) {
     if (this == o) {
