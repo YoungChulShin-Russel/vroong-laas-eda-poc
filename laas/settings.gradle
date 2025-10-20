@@ -1,5 +1,9 @@
 rootProject.name = 'laas'
 
+include 'common'
+include 'common:event'
+
+
 include 'delivery'
 include 'delivery:api'
 include 'delivery:core'
