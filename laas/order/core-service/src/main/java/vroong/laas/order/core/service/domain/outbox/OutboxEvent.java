@@ -9,6 +9,7 @@ import vroong.laas.order.data.entity.outbox.OutboxEventEntity;
 public class OutboxEvent {
   private Long id;
   private String eventToken;
+  private String eventKey;
   private OutboxEventStatus status;
   private String payload;
   private Instant registeredAt;
@@ -17,12 +18,14 @@ public class OutboxEvent {
   public OutboxEvent(
       Long id,
       String eventToken,
+      String eventKey,
       OutboxEventStatus status,
       String payload,
       Instant registeredAt,
       Instant publishedAt) {
     this.id = id;
     this.eventToken = eventToken;
+    this.eventKey = eventKey;
     this.status = status;
     this.payload = payload;
     this.registeredAt = registeredAt;
@@ -33,6 +36,7 @@ public class OutboxEvent {
     return new OutboxEvent(
         entity.getId(),
         entity.getEventToken(),
+        entity.getEntityKey(),
         entity.getStatus(),
         entity.getPayload(),
         entity.getRegisteredAt(),

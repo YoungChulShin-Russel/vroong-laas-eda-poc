@@ -79,7 +79,13 @@ management:
         fields:
           - x-user-id
 # Local DataSource (Writer/Reader 동일 - localhost:3306)
-dispatch:
+app:
+  logging:
+    exclude-patterns:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+
   datasource:
     # Writer DataSource (Local - localhost)
     write:
@@ -109,6 +115,10 @@ dispatch:
         idle-timeout: 600000
         max-lifetime: 1800000
 
+  outbox:
+    kafka:
+      bootstrap-servers: localhost:9092
+
 ## Kafka/Outbox 설정 (Local 환경)
 #outbox:
 #  event:
@@ -121,10 +131,3 @@ logging:
   level:
     vroong.laas.order: DEBUG  # 로컬: 상세 로그
     org.hibernate.SQL: DEBUG
-
-app:
-  logging:
-    exclude-patterns:
-      - /actuator/**
-      - /health
-      - /favicon.ico

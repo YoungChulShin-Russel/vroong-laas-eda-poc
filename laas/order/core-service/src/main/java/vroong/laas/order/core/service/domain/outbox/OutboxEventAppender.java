@@ -24,6 +24,7 @@ public class OutboxEventAppender {
 
     OutboxEventEntity outboxEventEntity = OutboxEventEntity.builder()
         .eventToken(UUID.randomUUID().toString())
+        .entityKey(order.getId().toString())
         .payload(payload)
         .status(OutboxEventStatus.REGISTERED)
         .registeredAt(Instant.now())

@@ -20,8 +20,11 @@ import vroong.laas.order.data.entity.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OutboxEventEntity extends BaseEntity {
 
-  @Column(name = "event_id")
+  @Column(name = "event_token")
   private String eventToken;
+
+  @Column(name = "entity_key")
+  private String entityKey;
 
   @Column(name = "satus")
   @Enumerated(value = EnumType.STRING)
@@ -39,11 +42,13 @@ public class OutboxEventEntity extends BaseEntity {
   @Builder
   public OutboxEventEntity(
       String eventToken,
+      String entityKey,
       String payload,
       OutboxEventStatus status,
       Instant registeredAt,
       Instant publishedAt) {
     this.eventToken = eventToken;
+    this.entityKey = entityKey;
     this.payload = payload;
     this.status = status;
     this.registeredAt = registeredAt;
