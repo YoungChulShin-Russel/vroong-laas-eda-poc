@@ -33,9 +33,6 @@ public class OrderCreatedEventPayload implements KafkaEventPayload {
   public static class OrderCreatedOrderLocation {
     private final String contactName;
     private final String contactPhoneNumber;
-    private final String entrancePassword;
-    private final String entranceGuide;
-    private final String requestMessage;
     private final BigDecimal latitude;
     private final BigDecimal longitude;
     private final String jibunAddress;
@@ -50,11 +47,5 @@ public class OrderCreatedEventPayload implements KafkaEventPayload {
     private final String itemName;
     private final Integer quantity;
     private final BigDecimal price;
-    private final String category;
-    private final BigDecimal weight;
-    private final BigDecimal volumeLength;
-    private final BigDecimal volumeWidth;
-    private final BigDecimal volumeHeight;
-    private final BigDecimal volumeCbm;
   }
 }

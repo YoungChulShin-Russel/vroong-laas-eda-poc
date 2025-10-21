@@ -1,4 +1,5 @@
 dependencies {
+    implementation project(":common:event")
     implementation project(":order:data")
     implementation project(":order:core-enum")
 

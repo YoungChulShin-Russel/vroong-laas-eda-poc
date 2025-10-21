@@ -6,12 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vroong.laas.order.core.enums.order.OrderStatus;
+import vroong.laas.order.core.enums.outbox.OutboxEventType;
 import vroong.laas.order.core.service.domain.order.Destination;
 import vroong.laas.order.core.service.domain.order.NewOrderItem;
 import vroong.laas.order.core.service.domain.order.Order;
 import vroong.laas.order.core.service.domain.order.OrderNumber;
 import vroong.laas.order.core.service.domain.order.OrderNumberGenerator;
 import vroong.laas.order.core.service.domain.order.Origin;
+import vroong.laas.order.core.service.domain.outbox.OutboxEventAppender;
 import vroong.laas.order.data.entity.order.OrderEntity;
 import vroong.laas.order.data.entity.order.OrderItemEntity;
 import vroong.laas.order.data.entity.order.OrderItemRepository;
@@ -24,6 +26,7 @@ import vroong.laas.order.data.entity.order.OrderRepository;
 public class OrderCreator {
 
   private final OrderNumberGenerator orderNumberGenerator;
+  private final OutboxEventAppender outboxEventAppender;
   private final OrderRepository orderRepository;
   private final OrderItemRepository orderItemRepository;
   private final OrderLocationRepository orderLocationRepository;
@@ -78,8 +81,12 @@ public class OrderCreator {
 
     orderLocationRepository.save(orderLocationEntity);
 
-    // save outbox
+    // map
+    Order order = Order.fromEntity(orderEntity, orderItemEntities, orderLocationEntity);
 
-    return Order.fromEntity(orderEntity, orderItemEntities, orderLocationEntity);
+    // save outbox
+    outboxEventAppender.append(OutboxEventType.ORDER_CREATED, order);
+
+    return order;
   }
 }
