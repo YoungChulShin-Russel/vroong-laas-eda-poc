@@ -5,12 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import vroong.laas.dispatch.core.enums.DispatchStatus;
+import vroong.laas.dispatch.core.enums.dispatch.DispatchStatus;
 import vroong.laas.dispatch.data.entity.ConcurrentEntity;
 
 @Getter
@@ -29,6 +30,9 @@ public class DispatchEntity extends ConcurrentEntity {
     @Column(name = "agent_id")
     private Long agentId;
 
+    @Column(name = "delivery_fee")
+    private BigDecimal deliveryFee;
+
     @Column(name = "requested_at")
     private Instant requestedAt;
 
@@ -43,12 +47,14 @@ public class DispatchEntity extends ConcurrentEntity {
             Long orderId,
             DispatchStatus status,
             Long agentId,
+            BigDecimal deliveryFee,
             Instant requestedAt,
             Instant dispatchedAt,
             Instant cancelledAt) {
         this.orderId = orderId;
         this.status = status;
         this.agentId = agentId;
+        this.deliveryFee = deliveryFee;
         this.requestedAt = requestedAt;
         this.dispatchedAt = dispatchedAt;
         this.cancelledAt = cancelledAt;
@@ -65,8 +71,9 @@ public class DispatchEntity extends ConcurrentEntity {
             .build();
     }
 
-    public void dispatch(Long agentId, Instant dispatchedAt) {
+    public void dispatch(Long agentId, BigDecimal deliveryFee, Instant dispatchedAt) {
         this.agentId = agentId;
+        this.deliveryFee = deliveryFee;
         this.dispatchedAt = dispatchedAt;
         this.status = DispatchStatus.DISPATCHED;
     }

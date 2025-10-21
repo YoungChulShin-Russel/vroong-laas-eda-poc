@@ -20,7 +20,7 @@ public class DispatchFacade {
   public Long requestDispatch(RequestDispatchCommand command) {
     Dispatch dispatch = dispatchRequestService.requestDispatch(command);
 
-    return dispatch.dispatchId();
+    return dispatch.id();
   }
 
   public Long proposeDispatch(ProposeDispatchCommand command) {

@@ -1,4 +1,5 @@
-package vroong.laas.dispatch.api.messaging.common;
+package vroong.laas.dispatch.api.messaging
+    ;
 
 import com.vroong.msa.kafka.event.KafkaEvent;
 import com.vroong.msa.kafka.event.KafkaEventPayload;

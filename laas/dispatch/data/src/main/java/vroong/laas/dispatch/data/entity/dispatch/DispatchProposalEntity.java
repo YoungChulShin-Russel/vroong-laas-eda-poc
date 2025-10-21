@@ -11,7 +11,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import vroong.laas.dispatch.core.enums.DispatchProposalStatus;
+import vroong.laas.dispatch.core.enums.dispatch.DispatchProposalStatus;
 import vroong.laas.dispatch.data.entity.BaseEntity;
 
 @Entity

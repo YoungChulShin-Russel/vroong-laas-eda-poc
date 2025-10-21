@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vroong.laas.dispatch.core.domain.dispatch.command.ProposeDispatchCommand;
-import vroong.laas.dispatch.core.enums.DispatchProposalStatus;
-import vroong.laas.dispatch.core.enums.DispatchStatus;
+import vroong.laas.dispatch.core.domain.outbox.OutboxEventAppender;
+import vroong.laas.dispatch.core.enums.dispatch.DispatchProposalStatus;
+import vroong.laas.dispatch.core.enums.dispatch.DispatchStatus;
+import vroong.laas.dispatch.core.enums.outbox.OutboxEventType;
 import vroong.laas.dispatch.data.entity.dispatch.DispatchEntity;
 import vroong.laas.dispatch.data.entity.dispatch.DispatchProposalEntity;
 import vroong.laas.dispatch.data.entity.dispatch.DispatchProposalRepository;
@@ -16,6 +18,7 @@ import vroong.laas.dispatch.data.entity.dispatch.DispatchRepository;
 @RequiredArgsConstructor
 public class DispatchProposalService {
 
+  private final OutboxEventAppender outboxEventAppender;
   private final DispatchRepository dispatchRepository;
   private final DispatchProposalRepository dispatchProposalRepository;
 
@@ -25,17 +28,20 @@ public class DispatchProposalService {
         dispatchRepository.findByOrderIdAndStatus(command.orderId(), DispatchStatus.REQUESTED)
             .orElseThrow(() -> new IllegalArgumentException("진행 중인 배차 정보가 없습니다"));
 
-    Instant expiresAt = Instant.now().plusSeconds(30);
-
     DispatchProposalEntity dispatchProposalEntity = DispatchProposalEntity.register(
         dispatchEntity.getId(),
         command.orderId(),
         command.agentId(),
         command.suggestedFee(),
-        expiresAt);
+        Instant.now().plusSeconds(30));
     dispatchProposalRepository.save(dispatchProposalEntity);
 
-    return DispatchProposal.fromEntity(dispatchProposalEntity);
+    DispatchProposal dispatchProposal = DispatchProposal.fromEntity(dispatchProposalEntity);
+    Dispatch dispatch = Dispatch.fromEntity(dispatchEntity);
+
+    outboxEventAppender.append(OutboxEventType.DISPATCH_DISPATCHED, dispatch);
+
+    return dispatchProposal;
   }
 
   @Transactional
@@ -55,6 +61,7 @@ public class DispatchProposalService {
 
     dispatchEntity.dispatch(
         dispatchProposalEntity.getAgentId(),
+        dispatchProposalEntity.getSuggestedFee(),
         dispatchProposalEntity.getRespondedAt());
     dispatchRepository.save(dispatchEntity);
 

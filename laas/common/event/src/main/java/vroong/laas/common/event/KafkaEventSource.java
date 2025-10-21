@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum KafkaEventSource {
 
   ORDER("order"),
+  DISPATCH("dispatch"),
   ;
 
   private final String value;

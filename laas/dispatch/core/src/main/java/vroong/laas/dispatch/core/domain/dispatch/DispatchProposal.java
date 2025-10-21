@@ -2,7 +2,7 @@ package vroong.laas.dispatch.core.domain.dispatch;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import vroong.laas.dispatch.core.enums.DispatchProposalStatus;
+import vroong.laas.dispatch.core.enums.dispatch.DispatchProposalStatus;
 import vroong.laas.dispatch.data.entity.dispatch.DispatchProposalEntity;
 
 public record DispatchProposal(

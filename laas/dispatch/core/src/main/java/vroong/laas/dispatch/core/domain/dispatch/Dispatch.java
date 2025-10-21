@@ -1,14 +1,16 @@
 package vroong.laas.dispatch.core.domain.dispatch;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import vroong.laas.dispatch.core.enums.DispatchStatus;
+import vroong.laas.dispatch.core.enums.dispatch.DispatchStatus;
 import vroong.laas.dispatch.data.entity.dispatch.DispatchEntity;
 
 public record Dispatch(
-    Long dispatchId,
+    Long id,
     Long orderId,
     DispatchStatus status,
     Long agentId,
+    BigDecimal deliveryFee,
     Instant requestedAt,
     Instant dispatchedAt,
     Instant cancelledAt
@@ -20,6 +22,7 @@ public record Dispatch(
         entity.getOrderId(),
         entity.getStatus(),
         entity.getAgentId(),
+        entity.getDeliveryFee(),
         entity.getRequestedAt(),
         entity.getDispatchedAt(),
         entity.getCancelledAt());

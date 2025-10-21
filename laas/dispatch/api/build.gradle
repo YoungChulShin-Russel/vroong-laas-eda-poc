@@ -43,7 +43,9 @@ dependencies {
     // H2 Database - 테스트용 인메모리 DB
     testRuntimeOnly 'com.h2database:h2'
 
-    implementation 'p6spy:p6spy:3.9.1'
+    // AOP (Scheduled Job 로깅)
+    implementation 'org.springframework:spring-aop'
+    implementation 'org.aspectj:aspectjweaver'
 }
 
 ext {

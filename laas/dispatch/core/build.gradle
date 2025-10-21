@@ -1,6 +1,8 @@
 dependencies {
+    implementation project(":common:event")
     implementation project(":dispatch:core-enum")
     implementation project(":dispatch:data")
 
     implementation 'org.springframework.data:spring-data-jpa'
+    implementation 'org.springframework.kafka:spring-kafka'
 }
