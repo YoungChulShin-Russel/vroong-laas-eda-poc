@@ -3,7 +3,7 @@ package vroong.laas.dispatch.core.domain.dispatch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vroong.laas.dispatch.core.application.dispatch.command.ProposeDispatchCommand;
+import vroong.laas.dispatch.core.domain.dispatch.command.ProposeDispatchCommand;
 import vroong.laas.dispatch.core.enums.DispatchProposalStatus;
 import vroong.laas.dispatch.core.enums.DispatchStatus;
 import vroong.laas.dispatch.data.entity.dispatch.DispatchEntity;

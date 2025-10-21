@@ -1,4 +1,4 @@
-package vroong.laas.dispatch.core.application.dispatch.command;
+package vroong.laas.dispatch.core.domain.dispatch.command;
 
 import java.time.Instant;
 

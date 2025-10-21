@@ -3,7 +3,7 @@ package vroong.laas.dispatch.api.web.dispatch.request;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import vroong.laas.dispatch.core.application.dispatch.command.ProposeDispatchCommand;
+import vroong.laas.dispatch.core.domain.dispatch.command.ProposeDispatchCommand;
 
 public record ProposeDispatchRequest(
     @NotNull Long orderId,

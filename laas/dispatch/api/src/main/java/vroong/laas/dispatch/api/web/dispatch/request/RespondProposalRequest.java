@@ -1,7 +1,7 @@
 package vroong.laas.dispatch.api.web.dispatch.request;
 
 import jakarta.validation.constraints.NotNull;
-import vroong.laas.dispatch.core.application.dispatch.command.RespondProposalCommand;
+import vroong.laas.dispatch.core.domain.dispatch.command.RespondProposalCommand;
 import vroong.laas.dispatch.core.domain.dispatch.DispatchProposalAction;
 
 public record RespondProposalRequest(

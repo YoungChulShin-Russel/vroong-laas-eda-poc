@@ -1,7 +1,7 @@
 package vroong.laas.dispatch.api.web.dispatch.request;
 
 import java.time.Instant;
-import vroong.laas.dispatch.core.application.dispatch.command.RequestDispatchCommand;
+import vroong.laas.dispatch.core.domain.dispatch.command.RequestDispatchCommand;
 
 public record RequestDispatchRequest(
     Long orderId,
