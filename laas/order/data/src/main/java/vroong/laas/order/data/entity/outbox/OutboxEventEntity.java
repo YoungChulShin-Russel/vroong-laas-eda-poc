@@ -6,17 +6,19 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import vroong.laas.order.core.enums.outbox.OutboxEventStatus;
 import vroong.laas.order.data.entity.BaseEntity;
 
+@Getter
 @Entity
 @Table(name = "outbox_events")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OutboxEventEntity extends BaseEntity {
 
   @Column(name = "event_id")
-  private String eventId;
+  private String eventToken;
 
   @Column(name = "satus")
   private OutboxEventStatus status;
@@ -32,15 +34,19 @@ public class OutboxEventEntity extends BaseEntity {
 
   @Builder
   public OutboxEventEntity(
-      String eventId,
+      String eventToken,
       String payload,
       OutboxEventStatus status,
       Instant registeredAt,
       Instant publishedAt) {
-    this.eventId = eventId;
+    this.eventToken = eventToken;
     this.payload = payload;
     this.status = status;
     this.registeredAt = registeredAt;
     this.publishedAt = publishedAt;
+  }
+
+  public void markAsPublished() {
+    this.status = OutboxEventStatus.PUBLISHED;
   }
 }

@@ -23,7 +23,7 @@ public class OutboxEventAppender {
     String payload = payloadGenerator.generate(eventType, order);
 
     OutboxEventEntity outboxEventEntity = OutboxEventEntity.builder()
-        .eventId(UUID.randomUUID().toString())
+        .eventToken(UUID.randomUUID().toString())
         .payload(payload)
         .status(OutboxEventStatus.REGISTERED)
         .registeredAt(Instant.now())
