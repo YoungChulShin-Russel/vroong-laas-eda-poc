@@ -2,6 +2,9 @@ package vroong.laas.order.data.entity.outbox;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumeratedValue;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.AccessLevel;
@@ -21,6 +24,7 @@ public class OutboxEventEntity extends BaseEntity {
   private String eventToken;
 
   @Column(name = "satus")
+  @Enumerated(value = EnumType.STRING)
   private OutboxEventStatus status;
 
   @Column(name = "payload", columnDefinition = "TEXT")
