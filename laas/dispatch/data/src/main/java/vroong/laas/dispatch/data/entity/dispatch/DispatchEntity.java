@@ -64,4 +64,10 @@ public class DispatchEntity extends ConcurrentEntity {
             .requestedAt(requestedAt)
             .build();
     }
+
+    public void dispatch(Long agentId, Instant dispatchedAt) {
+        this.agentId = agentId;
+        this.dispatchedAt = dispatchedAt;
+        this.status = DispatchStatus.DISPATCHED;
+    }
 }

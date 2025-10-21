@@ -69,13 +69,16 @@ public class DispatchProposalEntity extends BaseEntity {
         Long dispatchId,
         Long orderId,
         Long agentId,
-        BigDecimal suggestedFee
+        BigDecimal suggestedFee,
+        Instant expiresAt
     ) {
         return DispatchProposalEntity.builder()
             .dispatchId(dispatchId)
             .orderId(orderId)
             .agentId(agentId)
             .suggestedFee(suggestedFee)
+            .status(DispatchProposalStatus.PROPOSED)
+            .expiresAt(expiresAt)
             .proposedAt(Instant.now())
             .build();
     }

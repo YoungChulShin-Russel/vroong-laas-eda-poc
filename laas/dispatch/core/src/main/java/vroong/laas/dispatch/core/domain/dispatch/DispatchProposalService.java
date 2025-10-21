@@ -1,5 +1,6 @@
 package vroong.laas.dispatch.core.domain.dispatch;
 
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +25,14 @@ public class DispatchProposalService {
         dispatchRepository.findByOrderIdAndStatus(command.orderId(), DispatchStatus.REQUESTED)
             .orElseThrow(() -> new IllegalArgumentException("진행 중인 배차 정보가 없습니다"));
 
+    Instant expiresAt = Instant.now().plusSeconds(30);
+
     DispatchProposalEntity dispatchProposalEntity = DispatchProposalEntity.register(
         dispatchEntity.getId(),
         command.orderId(),
         command.agentId(),
-        command.suggestedFee());
+        command.suggestedFee(),
+        expiresAt);
     dispatchProposalRepository.save(dispatchProposalEntity);
 
     return DispatchProposal.fromEntity(dispatchProposalEntity);
@@ -44,6 +48,15 @@ public class DispatchProposalService {
 
     dispatchProposalEntity.accept();
     dispatchProposalRepository.save(dispatchProposalEntity);
+
+    DispatchEntity dispatchEntity = dispatchRepository.findById(
+            dispatchProposalEntity.getDispatchId())
+        .orElseThrow(() -> new IllegalArgumentException("배차 요청 정보를 찾을 수 없습니다"));
+
+    dispatchEntity.dispatch(
+        dispatchProposalEntity.getAgentId(),
+        dispatchProposalEntity.getRespondedAt());
+    dispatchRepository.save(dispatchEntity);
 
     return DispatchProposal.fromEntity(dispatchProposalEntity);
   }
