@@ -22,9 +22,8 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     }
 
     @Bean
-    @Override
     public MongoTemplate mongoTemplate() {
-        MongoTemplate template = super.mongoTemplate();
+        MongoTemplate template = new MongoTemplate(mongoClient(), getDatabaseName());
         MappingMongoConverter converter = (MappingMongoConverter) template.getConverter();
         converter.setTypeMapper(new DefaultMongoTypeMapper(null));
         return template;
