@@ -20,3 +20,5 @@ include 'order:core-service'
 include 'order:core-enum'
 include 'order:data'
 include 'order:api'
+
+include 'projection'
