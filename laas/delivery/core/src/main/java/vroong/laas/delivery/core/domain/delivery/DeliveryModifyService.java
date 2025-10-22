@@ -7,12 +7,15 @@ import vroong.laas.delivery.core.domain.delivery.command.DeliverDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.PickupDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.RegisterDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.info.DeliveryInfo;
+import vroong.laas.delivery.core.domain.outbox.OutboxEventAppender;
+import vroong.laas.delivery.core.domain.outbox.OutboxEventType;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryModifyService {
 
   private final DeliveryNumberGenerator deliveryNumberGenerator;
+  private final OutboxEventAppender outboxEventAppender;
   private final DeliveryRepository deliveryRepository;
   private final DeliveryDispatchMappingRepository deliveryDispatchMappingRepository;
   private final DeliveryHistoryRepository deliveryHistoryRepository;
@@ -31,6 +34,9 @@ public class DeliveryModifyService {
         DeliveryDispatchMapping.register(delivery.getId(), command.dispatchId());
     deliveryDispatchMappingRepository.save(deliveryDispatchMapping);
 
+    // outbox
+    outboxEventAppender.append(OutboxEventType.DELIVERY_STARTED, delivery);
+
     return DeliveryInfo.fromEntity(delivery);
   }
 
@@ -39,6 +45,7 @@ public class DeliveryModifyService {
     // pickup
     Delivery delivery = deliveryRepository.findById(command.deliveryId())
         .orElseThrow(() -> new IllegalArgumentException("배송 정보를 찾을 수 없습니다"));
+
     delivery.pickup();
 
     deliveryRepository.save(delivery);
@@ -46,20 +53,26 @@ public class DeliveryModifyService {
     // history
     appendHistory(delivery);
 
+    // outbox
+    outboxEventAppender.append(OutboxEventType.DELIVERY_DELIVERED, delivery);
+
     return DeliveryInfo.fromEntity(delivery);
   }
 
   @Transactional
   public DeliveryInfo deliverDelivery(DeliverDeliveryCommand command) {
-    // pickup
     Delivery delivery = deliveryRepository.findById(command.deliveryId())
         .orElseThrow(() -> new IllegalArgumentException("배송 정보를 찾을 수 없습니다"));
+
     delivery.deliver();
 
     deliveryRepository.save(delivery);
 
     // history
     appendHistory(delivery);
+
+    // outbox
+    outboxEventAppender.append(OutboxEventType.DELIVERY_DELIVERED, delivery);
 
     return DeliveryInfo.fromEntity(delivery);
   }

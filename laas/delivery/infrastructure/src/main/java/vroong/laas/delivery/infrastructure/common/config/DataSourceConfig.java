@@ -34,7 +34,7 @@ import vroong.laas.delivery.infrastructure.common.config.DataSourceRoutingConfig
 @Configuration
 public class DataSourceConfig {
   
-  public static final String SERVICE_NAME = "dispatch";
+  public static final String SERVICE_NAME = "delivery";
   public static final String WRITER_DATASOURCE_NAME = "writerDataSource";
   public static final String READER_DATASOURCE_NAME = "readerDataSource";
   public static final String ROUTING_DATASOURCE_NAME = "routingDataSource";

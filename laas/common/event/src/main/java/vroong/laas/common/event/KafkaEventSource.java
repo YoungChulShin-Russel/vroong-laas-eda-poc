@@ -7,6 +7,7 @@ public enum KafkaEventSource {
 
   ORDER("order"),
   DISPATCH("dispatch"),
+  DELIVERY("delivery"),
   ;
 
   private final String value;

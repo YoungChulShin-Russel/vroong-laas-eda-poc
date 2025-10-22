@@ -18,6 +18,10 @@ spring:
       hibernate:
         format_sql: true     # 로컬: SQL 포맷팅
     show-sql: true           # 로컬: SQL 로그 출력
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: delivery-server
 
 server:
   port: 8082
@@ -79,7 +83,7 @@ management:
         fields:
           - x-user-id
 # Local DataSource (Writer/Reader 동일 - localhost:3306)
-dispatch:
+delivery:
   datasource:
     # Writer DataSource (Local - localhost)
     write:

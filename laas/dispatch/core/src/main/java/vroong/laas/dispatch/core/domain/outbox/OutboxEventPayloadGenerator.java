@@ -13,12 +13,9 @@ import vroong.laas.dispatch.core.enums.outbox.OutboxEventType;
 public class OutboxEventPayloadGenerator {
 
   public String generate(OutboxEventType eventType, Dispatch dispatch) {
-    switch (eventType) {
-      case DISPATCH_DISPATCHED:
-        return generateDispatched(dispatch);
-    }
-
-    throw new IllegalArgumentException("invalid event type");
+    return switch (eventType) {
+      case DISPATCH_DISPATCHED -> generateDispatched(dispatch);
+    };
   }
 
   private String generateDispatched(Dispatch dispatch) {

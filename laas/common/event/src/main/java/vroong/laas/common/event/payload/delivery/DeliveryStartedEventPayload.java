@@ -10,7 +10,7 @@ import vroong.laas.common.event.SchemaVersion;
 @Builder
 @Jacksonized
 @Getter
-public class DeliveryDeliveredEventPayload implements KafkaEventPayload {
+public class DeliveryStartedEventPayload implements KafkaEventPayload {
 
   private Long deliveryId;
   private Long agentId;

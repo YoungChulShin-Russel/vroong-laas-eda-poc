@@ -18,12 +18,9 @@ import vroong.laas.order.core.service.domain.order.Origin;
 public class OutboxEventPayloadGenerator {
 
   public String generate(OutboxEventType eventType, Order order) {
-    switch (eventType) {
-      case ORDER_CREATED:
-        return generateOrderCreated(order);
-    }
-
-    throw new IllegalArgumentException("invalid event type");
+    return switch (eventType) {
+      case ORDER_CREATED -> generateOrderCreated(order);
+    };
   }
 
   private String generateOrderCreated(Order order) {

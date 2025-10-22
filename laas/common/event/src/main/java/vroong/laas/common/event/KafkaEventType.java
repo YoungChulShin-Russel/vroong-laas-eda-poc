@@ -2,6 +2,8 @@ package vroong.laas.common.event;
 
 import lombok.Getter;
 import vroong.laas.common.event.payload.delivery.DeliveryDeliveredEventPayload;
+import vroong.laas.common.event.payload.delivery.DeliveryPickedUpEventPayload;
+import vroong.laas.common.event.payload.delivery.DeliveryStartedEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
 import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
 
@@ -17,6 +19,16 @@ public enum KafkaEventType {
       "dispatch.dispatch.dispatched",
       KafkaEventTopic.DISPATCH_EVENT,
       DispatchDispatchedEventPayload.class),
+
+  DELIVERY_DELIVERY_STARTED(
+      "delivery.delivery.started",
+      KafkaEventTopic.DELIVERY_EVENT,
+      DeliveryStartedEventPayload.class),
+
+  DELIVERY_DELIVERY_PICKED_UP(
+      "delivery.delivery.picked-up",
+      KafkaEventTopic.DELIVERY_EVENT,
+      DeliveryPickedUpEventPayload.class),
 
   DELIVERY_DELIVERY_DELIVERED(
       "delivery.delivery.delivered",

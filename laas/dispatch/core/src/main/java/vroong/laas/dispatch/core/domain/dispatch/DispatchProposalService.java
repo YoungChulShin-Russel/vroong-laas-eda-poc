@@ -36,12 +36,7 @@ public class DispatchProposalService {
         Instant.now().plusSeconds(30));
     dispatchProposalRepository.save(dispatchProposalEntity);
 
-    DispatchProposal dispatchProposal = DispatchProposal.fromEntity(dispatchProposalEntity);
-    Dispatch dispatch = Dispatch.fromEntity(dispatchEntity);
-
-    outboxEventAppender.append(OutboxEventType.DISPATCH_DISPATCHED, dispatch);
-
-    return dispatchProposal;
+    return DispatchProposal.fromEntity(dispatchProposalEntity);
   }
 
   @Transactional
@@ -65,7 +60,12 @@ public class DispatchProposalService {
         dispatchProposalEntity.getRespondedAt());
     dispatchRepository.save(dispatchEntity);
 
-    return DispatchProposal.fromEntity(dispatchProposalEntity);
+    DispatchProposal dispatchProposal = DispatchProposal.fromEntity(dispatchProposalEntity);
+    Dispatch dispatch = Dispatch.fromEntity(dispatchEntity);
+
+    outboxEventAppender.append(OutboxEventType.DISPATCH_DISPATCHED, dispatch);
+
+    return dispatchProposal;
   }
 
   @Transactional

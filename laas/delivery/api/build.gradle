@@ -5,6 +5,8 @@ springBoot {
 }
 
 dependencies {
+
+    implementation project(":common:event")
     implementation project(":delivery:core")
     implementation project(":delivery:infrastructure")
 
@@ -29,4 +31,11 @@ dependencies {
 
     // H2 Database - 테스트용 인메모리 DB
     testRuntimeOnly 'com.h2database:h2'
+
+    // AOP (Scheduled Job 로깅)
+    implementation 'org.springframework:spring-aop'
+    implementation 'org.aspectj:aspectjweaver'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 }

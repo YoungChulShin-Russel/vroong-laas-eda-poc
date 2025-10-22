@@ -17,7 +17,7 @@ import vroong.laas.dispatch.core.domain.dispatch.command.RequestDispatchCommand;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DeliveryEventListener {
+public class OrderEventListener {
 
   private final DispatchFacade dispatchFacade;
 
