@@ -9,6 +9,7 @@ springBoot {
 }
 
 dependencies {
+    implementation project(":common:event")
     implementation project(":dispatch:core")
     implementation project(":dispatch:core-enum")
     implementation project(":dispatch:data")
@@ -19,7 +20,6 @@ dependencies {
 
     // kafka
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'com.vroong.msa.kafka:vroong-msa-kafka-event:1.0.7'
 
     // Actuator (Health Check, Metrics, Kubernetes Probe)
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

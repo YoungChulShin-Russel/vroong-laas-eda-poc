@@ -1,9 +1,5 @@
-package vroong.laas.dispatch.api.messaging
-    ;
+package vroong.laas.dispatch.api.messaging;
 
-import com.vroong.msa.kafka.event.KafkaEvent;
-import com.vroong.msa.kafka.event.KafkaEventPayload;
-import com.vroong.msa.kafka.event.payload.order.OrderCreatedKafkaEventPayload;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +7,9 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import vroong.laas.common.event.KafkaEvent;
+import vroong.laas.common.event.KafkaEventPayload;
+import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
 import vroong.laas.dispatch.core.application.dispatch.DispatchFacade;
 import vroong.laas.dispatch.core.domain.dispatch.command.RequestDispatchCommand;
 
@@ -39,7 +38,7 @@ public class OrderEventListener {
   }
 
   private void handleOrderCreated(KafkaEvent<KafkaEventPayload> kafkaEvent) {
-    OrderCreatedKafkaEventPayload payload = (OrderCreatedKafkaEventPayload) kafkaEvent.getPayload();
+    OrderCreatedEventPayload payload = (OrderCreatedEventPayload) kafkaEvent.getPayload();
     dispatchFacade.requestDispatch(new RequestDispatchCommand(payload.getOrderId(), Instant.now()));
   }
 
