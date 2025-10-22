@@ -16,7 +16,7 @@ public class OrderProjectionHandler {
 
     private final List<OrderEventHandler> orderEventHandlers;
 
-    public OrderProjection handleOrderCreated(OrderEvent orderEvent) {
+    public OrderProjection handleOrderEvent(OrderEvent orderEvent) {
         log.debug("Finding handler for order event type: {}", orderEvent.getKafkaEvent().getType());
         
         OrderEventHandler handler = orderEventHandlers.stream()

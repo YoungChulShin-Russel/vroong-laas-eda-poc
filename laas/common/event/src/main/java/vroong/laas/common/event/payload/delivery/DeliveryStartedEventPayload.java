@@ -13,8 +13,10 @@ import vroong.laas.common.event.SchemaVersion;
 public class DeliveryStartedEventPayload implements KafkaEventPayload {
 
   private Long deliveryId;
+  private Long orderId;
   private Long agentId;
-  private Instant occurredAt;
+  private String deliveryStatus;
+  private Instant startedAt;
 
   @Override
   public SchemaVersion getSchemaVersion() {

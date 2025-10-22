@@ -26,6 +26,54 @@ public class DeliveryEvent {
         return null;
     }
     
+    public Long getOrderId() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getOrderId();
+        } else if (payload instanceof DeliveryPickedUpEventPayload pickedUpPayload) {
+            return pickedUpPayload.getOrderId();
+        } else if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
+            return deliveredPayload.getOrderId();
+        }
+        return null;
+    }
+    
+    public String getDeliveryStatus() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getDeliveryStatus();
+        } else if (payload instanceof DeliveryPickedUpEventPayload pickedUpPayload) {
+            return pickedUpPayload.getDeliveryStatus();
+        } else if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
+            return deliveredPayload.getDeliveryStatus();
+        }
+        return null;
+    }
+    
+    public java.time.Instant getStartedAt() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getStartedAt();
+        }
+        return null;
+    }
+    
+    public java.time.Instant getPickedUpAt() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryPickedUpEventPayload pickedUpPayload) {
+            return pickedUpPayload.getPickedUpAt();
+        }
+        return null;
+    }
+    
+    public java.time.Instant getDeliveredAt() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
+            return deliveredPayload.getDeliveredAt();
+        }
+        return null;
+    }
+    
     public Long getAgentId() {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof DeliveryStartedEventPayload startedPayload) {

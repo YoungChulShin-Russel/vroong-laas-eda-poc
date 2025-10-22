@@ -26,10 +26,8 @@ public class DeliveryDeliveredHandler implements DeliveryEventHandler {
         Instant now = Instant.now();
         
         OrderProjection updatedProjection = existingProjection.toBuilder()
-                .deliveryId(deliveryEvent.getDeliveryId())
-                .agentId(deliveryEvent.getAgentId())
-                .deliveryStatus(OrderProjection.DeliveryStatus.DELIVERED.name())
-                .deliveryDeliveredAt(Instant.ofEpochMilli(deliveryEvent.getTimestamp()))
+                .deliveryStatus(deliveryEvent.getDeliveryStatus())
+                .deliveryDeliveredAt(deliveryEvent.getDeliveredAt())
                 .updatedAt(now)
                 .build();
         

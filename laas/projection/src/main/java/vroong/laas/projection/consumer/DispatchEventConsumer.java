@@ -10,20 +10,15 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
-import vroong.laas.projection.handler.DispatchProjectionHandler;
 import vroong.laas.projection.model.event.DispatchEvent;
-import vroong.laas.projection.model.projection.OrderProjection;
-import vroong.laas.projection.service.ProjectionService;
-
-import java.util.Optional;
+import vroong.laas.projection.service.ProjectionOrchestrator;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DispatchEventConsumer {
 
-    private final DispatchProjectionHandler dispatchProjectionHandler;
-    private final ProjectionService projectionService;
+    private final ProjectionOrchestrator projectionOrchestrator;
 
     @KafkaListener(topics = "${projection.topics.dispatch}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleDispatchEvent(
@@ -33,6 +28,7 @@ public class DispatchEventConsumer {
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
         
+        
         try {
             log.debug("Received dispatch event: eventId={}, orderId={}, topic={}, partition={}, offset={}", 
                     kafkaEvent.getEventId(), 
@@ -41,21 +37,9 @@ public class DispatchEventConsumer {
 
             DispatchEvent dispatchEvent = new DispatchEvent(kafkaEvent);
             
-            // 기존 projection 조회 및 업데이트
-            Optional<OrderProjection> existingProjection = projectionService.getOrderProjection(dispatchEvent.getOrderId());
-            if (existingProjection.isPresent()) {
-                OrderProjection updatedProjection = dispatchProjectionHandler.updateDispatchInfo(
-                        existingProjection.get(), dispatchEvent);
-                projectionService.saveOrderProjection(updatedProjection);
-                
-                log.info("Successfully updated dispatch projection: dispatchId={}, orderId={}, agentId={}", 
-                        dispatchEvent.getDispatchId(), 
-                        dispatchEvent.getOrderId(),
-                        dispatchEvent.getAgentId());
-            } else {
-                log.warn("Order projection not found for dispatch event: orderId={}, dispatchId={}", 
-                        dispatchEvent.getOrderId(), dispatchEvent.getDispatchId());
-            }
+            // Orchestrator를 통해 처리
+            projectionOrchestrator.handleDispatchEvent(dispatchEvent);
+            
             
             acknowledgment.acknowledge();
             log.debug("Successfully processed dispatch event: eventId={}", kafkaEvent.getEventId());
@@ -63,6 +47,8 @@ public class DispatchEventConsumer {
         } catch (Exception e) {
             log.error("Failed to process dispatch event: eventId={}, error={}", 
                     kafkaEvent.getEventId(), e.getMessage(), e);
+            
+            
             // TODO: DLQ 또는 재시도 로직 구현
             acknowledgment.acknowledge(); // 임시로 ack 처리 (무한 재시도 방지)
         }

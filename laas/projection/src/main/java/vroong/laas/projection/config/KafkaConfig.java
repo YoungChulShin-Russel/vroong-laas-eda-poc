@@ -1,6 +1,6 @@
 package vroong.laas.projection.config;
 
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;

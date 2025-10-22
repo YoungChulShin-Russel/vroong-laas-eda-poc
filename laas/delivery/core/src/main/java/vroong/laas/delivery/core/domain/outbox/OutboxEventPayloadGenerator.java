@@ -29,8 +29,10 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryStartedPayload(Delivery delivery) {
     var payload = DeliveryStartedEventPayload.builder()
         .deliveryId(delivery.getId())
+        .orderId(delivery.getOrderId())
         .agentId(delivery.getAgentId())
-        .occurredAt(delivery.getCreatedAt())
+        .deliveryStatus(delivery.getStatus().name())
+        .startedAt(delivery.getCreatedAt())
         .build();
 
     var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_STARTED, payload);
@@ -41,8 +43,10 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryPickedUpPayload(Delivery delivery) {
     var payload = DeliveryPickedUpEventPayload.builder()
         .deliveryId(delivery.getId())
+        .orderId(delivery.getOrderId())
         .agentId(delivery.getAgentId())
-        .occurredAt(delivery.getCreatedAt())
+        .deliveryStatus(delivery.getStatus().name())
+        .pickedUpAt(delivery.getCreatedAt())
         .build();
 
     var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_PICKED_UP, payload);
@@ -53,8 +57,10 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryDeliveredPayload(Delivery delivery) {
     var payload = DeliveryDeliveredEventPayload.builder()
         .deliveryId(delivery.getId())
+        .orderId(delivery.getOrderId())
         .agentId(delivery.getAgentId())
-        .occurredAt(delivery.getCreatedAt())
+        .deliveryStatus(delivery.getStatus().name())
+        .deliveredAt(delivery.getCreatedAt())
         .build();
 
     var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_DELIVERED, payload);

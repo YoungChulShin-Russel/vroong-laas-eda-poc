@@ -28,8 +28,8 @@ public class DeliveryStartedHandler implements DeliveryEventHandler {
         OrderProjection updatedProjection = existingProjection.toBuilder()
                 .deliveryId(deliveryEvent.getDeliveryId())
                 .agentId(deliveryEvent.getAgentId())
-                .deliveryStatus(OrderProjection.DeliveryStatus.STARTED.name())
-                .deliveryStartedAt(Instant.ofEpochMilli(deliveryEvent.getTimestamp()))
+                .deliveryStatus(deliveryEvent.getDeliveryStatus())
+                .deliveryStartedAt(deliveryEvent.getStartedAt())
                 .updatedAt(now)
                 .build();
         

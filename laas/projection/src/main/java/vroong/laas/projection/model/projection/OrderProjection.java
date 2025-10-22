@@ -32,6 +32,7 @@ public class OrderProjection {
     private final Instant deliveryStartedAt;
     private final Instant deliveryPickedUpAt;
     private final Instant deliveryDeliveredAt;
+    private final Instant deliveryCancelledAt;
     
     // Projection 메타데이터
     private final Instant createdAt;
@@ -57,10 +58,4 @@ public class OrderProjection {
         private final BigDecimal price;
     }
     
-    public enum DeliveryStatus {
-        NOT_STARTED,
-        STARTED,
-        PICKED_UP,
-        DELIVERED
-    }
 }

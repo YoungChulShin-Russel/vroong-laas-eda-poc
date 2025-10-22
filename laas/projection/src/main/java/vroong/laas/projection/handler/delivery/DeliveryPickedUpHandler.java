@@ -26,10 +26,8 @@ public class DeliveryPickedUpHandler implements DeliveryEventHandler {
         Instant now = Instant.now();
         
         OrderProjection updatedProjection = existingProjection.toBuilder()
-                .deliveryId(deliveryEvent.getDeliveryId())
-                .agentId(deliveryEvent.getAgentId())
-                .deliveryStatus(OrderProjection.DeliveryStatus.PICKED_UP.name())
-                .deliveryPickedUpAt(Instant.ofEpochMilli(deliveryEvent.getTimestamp()))
+                .deliveryStatus(deliveryEvent.getDeliveryStatus())
+                .deliveryPickedUpAt(deliveryEvent.getPickedUpAt())
                 .updatedAt(now)
                 .build();
         

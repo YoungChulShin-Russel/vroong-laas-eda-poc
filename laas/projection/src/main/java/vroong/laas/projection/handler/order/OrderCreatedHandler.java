@@ -32,8 +32,8 @@ public class OrderCreatedHandler implements OrderEventHandler {
                 .orderStatus(orderEvent.getOrderStatus())
                 .originLocation(convertLocation(orderEvent.getOriginLocation()))
                 .destinationLocation(convertLocation(orderEvent.getDestinationLocation()))
-                .items(convertItems(orderEvent.getKafkaEvent().getPayload().getItems()))
-                .orderedAt(orderEvent.getKafkaEvent().getPayload().getOrderedAt())
+                .items(convertItems(orderEvent.getItems()))
+                .orderedAt(orderEvent.getOrderedAt())
                 
                 // 초기값 설정 (아직 배차/배송 정보 없음)
                 .dispatchId(null)
@@ -42,10 +42,11 @@ public class OrderCreatedHandler implements OrderEventHandler {
                 .dispatchedAt(null)
                 
                 .deliveryId(null)
-                .deliveryStatus(OrderProjection.DeliveryStatus.NOT_STARTED.name())
+                .deliveryStatus(null)
                 .deliveryStartedAt(null)
                 .deliveryPickedUpAt(null)
                 .deliveryDeliveredAt(null)
+                .deliveryCancelledAt(null)
                 
                 // 메타데이터
                 .createdAt(now)

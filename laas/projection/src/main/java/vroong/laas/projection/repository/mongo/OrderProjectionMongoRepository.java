@@ -9,10 +9,7 @@ import org.springframework.stereotype.Repository;
 import vroong.laas.projection.model.document.OrderDocument;
 import vroong.laas.projection.model.projection.OrderProjection;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -56,68 +53,6 @@ public class OrderProjectionMongoRepository {
         }
     }
 
-    public List<OrderProjection> findByAgentId(Long agentId) {
-        try {
-            Query query = new Query(Criteria.where("agentId").is(agentId));
-            List<OrderDocument> documents = mongoTemplate.find(query, OrderDocument.class);
-            
-            List<OrderProjection> projections = documents.stream()
-                    .map(OrderDocument::toProjection)
-                    .collect(Collectors.toList());
-            
-            log.debug("Found {} order projections for agentId={}", projections.size(), agentId);
-            return projections;
-            
-        } catch (Exception e) {
-            log.error("Failed to find order projections by agentId: agentId={}, error={}", 
-                    agentId, e.getMessage(), e);
-            return List.of();
-        }
-    }
-
-    public List<OrderProjection> findByOrderedAtBetween(Instant startTime, Instant endTime) {
-        try {
-            Query query = new Query(
-                    Criteria.where("orderedAt")
-                            .gte(startTime)
-                            .lte(endTime)
-            );
-            List<OrderDocument> documents = mongoTemplate.find(query, OrderDocument.class);
-            
-            List<OrderProjection> projections = documents.stream()
-                    .map(OrderDocument::toProjection)
-                    .collect(Collectors.toList());
-            
-            log.debug("Found {} order projections between {} and {}", 
-                    projections.size(), startTime, endTime);
-            return projections;
-            
-        } catch (Exception e) {
-            log.error("Failed to find order projections by date range: startTime={}, endTime={}, error={}", 
-                    startTime, endTime, e.getMessage(), e);
-            return List.of();
-        }
-    }
-
-    public List<OrderProjection> findByDeliveryStatus(String deliveryStatus) {
-        try {
-            Query query = new Query(Criteria.where("deliveryStatus").is(deliveryStatus));
-            List<OrderDocument> documents = mongoTemplate.find(query, OrderDocument.class);
-            
-            List<OrderProjection> projections = documents.stream()
-                    .map(OrderDocument::toProjection)
-                    .collect(Collectors.toList());
-            
-            log.debug("Found {} order projections with deliveryStatus={}", 
-                    projections.size(), deliveryStatus);
-            return projections;
-            
-        } catch (Exception e) {
-            log.error("Failed to find order projections by delivery status: deliveryStatus={}, error={}", 
-                    deliveryStatus, e.getMessage(), e);
-            return List.of();
-        }
-    }
 
     public void deleteByOrderId(Long orderId) {
         try {
@@ -141,14 +76,4 @@ public class OrderProjectionMongoRepository {
         }
     }
 
-    public long countByDeliveryStatus(String deliveryStatus) {
-        try {
-            Query query = new Query(Criteria.where("deliveryStatus").is(deliveryStatus));
-            return mongoTemplate.count(query, OrderDocument.class);
-        } catch (Exception e) {
-            log.error("Failed to count by delivery status: deliveryStatus={}, error={}", 
-                    deliveryStatus, e.getMessage(), e);
-            return 0;
-        }
-    }
 }
