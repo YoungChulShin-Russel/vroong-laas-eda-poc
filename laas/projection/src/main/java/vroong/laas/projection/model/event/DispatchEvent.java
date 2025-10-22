@@ -3,6 +3,7 @@ package vroong.laas.projection.model.event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import vroong.laas.common.event.KafkaEvent;
+import vroong.laas.common.event.KafkaEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
 
 import java.math.BigDecimal;
@@ -12,26 +13,46 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class DispatchEvent {
     
-    private final KafkaEvent<DispatchDispatchedEventPayload> kafkaEvent;
+    private final KafkaEvent<? extends KafkaEventPayload> kafkaEvent;
     
     public Long getDispatchId() {
-        return kafkaEvent.getPayload().getDispatchId();
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DispatchDispatchedEventPayload dispatchedPayload) {
+            return dispatchedPayload.getDispatchId();
+        }
+        return null;
     }
     
     public Long getOrderId() {
-        return kafkaEvent.getPayload().getOrderId();
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DispatchDispatchedEventPayload dispatchedPayload) {
+            return dispatchedPayload.getOrderId();
+        }
+        return null;
     }
     
     public Long getAgentId() {
-        return kafkaEvent.getPayload().getAgentId();
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DispatchDispatchedEventPayload dispatchedPayload) {
+            return dispatchedPayload.getAgentId();
+        }
+        return null;
     }
     
     public BigDecimal getDeliveryFee() {
-        return kafkaEvent.getPayload().getDeliveryFee();
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DispatchDispatchedEventPayload dispatchedPayload) {
+            return dispatchedPayload.getDeliveryFee();
+        }
+        return null;
     }
     
     public Instant getDispatchedAt() {
-        return kafkaEvent.getPayload().getDispatchedAt();
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DispatchDispatchedEventPayload dispatchedPayload) {
+            return dispatchedPayload.getDispatchedAt();
+        }
+        return null;
     }
     
     public String getEventId() {

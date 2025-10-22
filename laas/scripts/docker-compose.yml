@@ -58,6 +58,39 @@ services:
       "
     platform: linux/arm64
 
+  redis:
+    container_name: laas-redis
+    image: redis:7.2.4-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    platform: linux/arm64
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    container_name: laas-mongodb
+    image: mongo:7.0.14
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: projection
+    volumes:
+      - ./mongodb-init.js:/docker-entrypoint-initdb.d/init.js:ro
+    platform: linux/arm64
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 #  redis-cluster:
 #    container_name: order-redis-cluster
 #    image: bitnami/redis-cluster:7.2.4

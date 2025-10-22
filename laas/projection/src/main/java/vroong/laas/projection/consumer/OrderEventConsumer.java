@@ -22,14 +22,25 @@ public class OrderEventConsumer {
 
     @KafkaListener(topics = "${projection.topics.order}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleOrderEvent(
-            @Payload KafkaEvent<? extends KafkaEventPayload> kafkaEvent,
+            @Payload String message,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
         
+        KafkaEvent<? extends KafkaEventPayload> kafkaEvent = null;
         
         try {
+            // JSON 문자열을 KafkaEvent로 역직렬화
+            kafkaEvent = KafkaEvent.fromJson(message);
+            
+            if (kafkaEvent == null) {
+                log.error("Failed to deserialize kafka event: topic={}, partition={}, offset={}", 
+                        topic, partition, offset);
+                acknowledgment.acknowledge();
+                return;
+            }
+            
             OrderEvent orderEvent = new OrderEvent(kafkaEvent);
             
             log.debug("Received order event: eventId={}, orderId={}, eventType={}, topic={}, partition={}, offset={}", 
@@ -47,7 +58,8 @@ public class OrderEventConsumer {
             
         } catch (Exception e) {
             log.error("Failed to process order event: eventId={}, error={}", 
-                    kafkaEvent.getEventId(), e.getMessage(), e);
+                    kafkaEvent != null ? kafkaEvent.getEventId() : "unknown", 
+                    e.getMessage(), e);
             
             
             // TODO: DLQ 또는 재시도 로직 구현

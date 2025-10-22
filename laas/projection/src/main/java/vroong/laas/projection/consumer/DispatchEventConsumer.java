@@ -9,7 +9,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
-import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
+import vroong.laas.common.event.KafkaEventPayload;
 import vroong.laas.projection.model.event.DispatchEvent;
 import vroong.laas.projection.service.ProjectionOrchestrator;
 
@@ -22,17 +22,27 @@ public class DispatchEventConsumer {
 
     @KafkaListener(topics = "${projection.topics.dispatch}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleDispatchEvent(
-            @Payload KafkaEvent<DispatchDispatchedEventPayload> kafkaEvent,
+            @Payload String message,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             Acknowledgment acknowledgment) {
         
+        KafkaEvent<? extends KafkaEventPayload> kafkaEvent = null;
         
         try {
-            log.debug("Received dispatch event: eventId={}, orderId={}, topic={}, partition={}, offset={}", 
+            // JSON 문자열을 KafkaEvent로 역직렬화
+            kafkaEvent = KafkaEvent.fromJson(message);
+            
+            if (kafkaEvent == null) {
+                log.error("Failed to deserialize kafka event: topic={}, partition={}, offset={}", 
+                        topic, partition, offset);
+                acknowledgment.acknowledge();
+                return;
+            }
+            
+            log.debug("Received dispatch event: eventId={}, topic={}, partition={}, offset={}", 
                     kafkaEvent.getEventId(), 
-                    kafkaEvent.getPayload().getOrderId(),
                     topic, partition, offset);
 
             DispatchEvent dispatchEvent = new DispatchEvent(kafkaEvent);
@@ -46,7 +56,8 @@ public class DispatchEventConsumer {
             
         } catch (Exception e) {
             log.error("Failed to process dispatch event: eventId={}, error={}", 
-                    kafkaEvent.getEventId(), e.getMessage(), e);
+                    kafkaEvent != null ? kafkaEvent.getEventId() : "unknown", 
+                    e.getMessage(), e);
             
             
             // TODO: DLQ 또는 재시도 로직 구현

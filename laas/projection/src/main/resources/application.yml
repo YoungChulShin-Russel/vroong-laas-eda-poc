@@ -1,3 +1,8 @@
+
+server:
+  port: 8083
+  shutdown: graceful
+
 spring:
   application:
     name: projection
@@ -25,6 +30,9 @@ spring:
       host: localhost
       port: 27017
       database: projection
+      username: root
+      password: password
+      authentication-database: admin
 
 # Custom Configuration
 projection:
