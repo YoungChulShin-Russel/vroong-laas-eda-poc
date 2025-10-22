@@ -10,12 +10,16 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
+import vroong.laas.projection.handler.OrderProjectionHandler;
 import vroong.laas.projection.model.event.OrderEvent;
+import vroong.laas.projection.model.projection.OrderProjection;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class OrderEventConsumer {
+
+    private final OrderProjectionHandler orderProjectionHandler;
 
     @KafkaListener(topics = "${projection.topics.order}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleOrderEvent(
@@ -33,11 +37,12 @@ public class OrderEventConsumer {
 
             OrderEvent orderEvent = new OrderEvent(kafkaEvent);
             
-            // TODO: ProjectionHandler 호출하여 처리
-            log.info("Processing order event: orderId={}, orderNumber={}, status={}", 
-                    orderEvent.getOrderId(), 
-                    orderEvent.getOrderNumber(),
-                    orderEvent.getOrderStatus());
+            // Projection 생성 및 저장
+            OrderProjection projection = orderProjectionHandler.handleOrderCreated(orderEvent);
+            
+            // TODO: Repository를 통해 Redis/MongoDB에 저장
+            log.info("Created order projection: orderId={}, orderNumber={}", 
+                    projection.getOrderId(), projection.getOrderNumber());
             
             acknowledgment.acknowledge();
             log.debug("Successfully processed order event: eventId={}", kafkaEvent.getEventId());
