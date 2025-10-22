@@ -10,12 +10,20 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
+import vroong.laas.projection.handler.DispatchProjectionHandler;
 import vroong.laas.projection.model.event.DispatchEvent;
+import vroong.laas.projection.model.projection.OrderProjection;
+import vroong.laas.projection.service.ProjectionService;
+
+import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DispatchEventConsumer {
+
+    private final DispatchProjectionHandler dispatchProjectionHandler;
+    private final ProjectionService projectionService;
 
     @KafkaListener(topics = "${projection.topics.dispatch}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleDispatchEvent(
@@ -33,12 +41,21 @@ public class DispatchEventConsumer {
 
             DispatchEvent dispatchEvent = new DispatchEvent(kafkaEvent);
             
-            // TODO: ProjectionHandler 호출하여 처리
-            log.info("Processing dispatch event: dispatchId={}, orderId={}, agentId={}, deliveryFee={}", 
-                    dispatchEvent.getDispatchId(), 
-                    dispatchEvent.getOrderId(),
-                    dispatchEvent.getAgentId(),
-                    dispatchEvent.getDeliveryFee());
+            // 기존 projection 조회 및 업데이트
+            Optional<OrderProjection> existingProjection = projectionService.getOrderProjection(dispatchEvent.getOrderId());
+            if (existingProjection.isPresent()) {
+                OrderProjection updatedProjection = dispatchProjectionHandler.updateDispatchInfo(
+                        existingProjection.get(), dispatchEvent);
+                projectionService.saveOrderProjection(updatedProjection);
+                
+                log.info("Successfully updated dispatch projection: dispatchId={}, orderId={}, agentId={}", 
+                        dispatchEvent.getDispatchId(), 
+                        dispatchEvent.getOrderId(),
+                        dispatchEvent.getAgentId());
+            } else {
+                log.warn("Order projection not found for dispatch event: orderId={}, dispatchId={}", 
+                        dispatchEvent.getOrderId(), dispatchEvent.getDispatchId());
+            }
             
             acknowledgment.acknowledge();
             log.debug("Successfully processed dispatch event: eventId={}", kafkaEvent.getEventId());

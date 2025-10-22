@@ -10,12 +10,20 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
+import vroong.laas.projection.handler.DeliveryProjectionHandler;
 import vroong.laas.projection.model.event.DeliveryEvent;
+import vroong.laas.projection.model.projection.OrderProjection;
+import vroong.laas.projection.service.ProjectionService;
+
+import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DeliveryEventConsumer {
+
+    private final DeliveryProjectionHandler deliveryProjectionHandler;
+    private final ProjectionService projectionService;
 
     @KafkaListener(topics = "${projection.topics.delivery}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleDeliveryEvent(
@@ -31,11 +39,14 @@ public class DeliveryEventConsumer {
 
             DeliveryEvent deliveryEvent = new DeliveryEvent(kafkaEvent);
             
-            // TODO: ProjectionHandler 호출하여 처리
+            // TODO: deliveryId로 기존 projection 찾기 구현 필요
+            // 현재는 로깅만 수행
             log.info("Processing delivery event: deliveryId={}, agentId={}, eventType={}", 
                     deliveryEvent.getDeliveryId(), 
                     deliveryEvent.getAgentId(),
                     deliveryEvent.getEventType());
+            
+            log.warn("Delivery event processing not fully implemented yet - need orderId mapping");
             
             acknowledgment.acknowledge();
             log.debug("Successfully processed delivery event: eventId={}", kafkaEvent.getEventId());

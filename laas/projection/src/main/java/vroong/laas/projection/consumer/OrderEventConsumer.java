@@ -13,6 +13,7 @@ import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
 import vroong.laas.projection.handler.OrderProjectionHandler;
 import vroong.laas.projection.model.event.OrderEvent;
 import vroong.laas.projection.model.projection.OrderProjection;
+import vroong.laas.projection.service.ProjectionService;
 
 @Slf4j
 @Component
@@ -20,6 +21,7 @@ import vroong.laas.projection.model.projection.OrderProjection;
 public class OrderEventConsumer {
 
     private final OrderProjectionHandler orderProjectionHandler;
+    private final ProjectionService projectionService;
 
     @KafkaListener(topics = "${projection.topics.order}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleOrderEvent(
@@ -39,9 +41,9 @@ public class OrderEventConsumer {
             
             // Projection 생성 및 저장
             OrderProjection projection = orderProjectionHandler.handleOrderCreated(orderEvent);
+            projectionService.saveOrderProjection(projection);
             
-            // TODO: Repository를 통해 Redis/MongoDB에 저장
-            log.info("Created order projection: orderId={}, orderNumber={}", 
+            log.info("Successfully saved order projection: orderId={}, orderNumber={}", 
                     projection.getOrderId(), projection.getOrderNumber());
             
             acknowledgment.acknowledge();
