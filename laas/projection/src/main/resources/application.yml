@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: projection
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: projection-server
+  
+  # Redis Configuration  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 100ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+    
+    # MongoDB Configuration
+    mongodb:
+      host: localhost
+      port: 27017
+      database: projection
+
+# Custom Configuration
+projection:
+  redis:
+    ttl-hours: 24
+  topics:
+    order: order.event
+    delivery: delivery.event
+    dispatch: dispatch.event
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+
+# Logging
+logging:
+  level:
+    vroong.laas.projection: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO
+    org.springframework.data.mongodb: INFO
