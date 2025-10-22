@@ -56,5 +56,6 @@ public class OutboxEventEntity extends BaseEntity {
 
   public void markAsPublished() {
     this.status = OutboxEventStatus.PUBLISHED;
+    this.publishedAt = Instant.now();
   }
 }
