@@ -1,6 +1,35 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
 dependencies {
+    // Spring Boot WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    
+    // Actuator & Monitoring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    
+    // Reactive Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+    
+    // Reactive MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+    
+    // JSON Processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Common Event Module (if needed for integration with other services)
+    implementation project(':common:event')
+    
+    // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mongodb'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
