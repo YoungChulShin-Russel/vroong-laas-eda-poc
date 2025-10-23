@@ -15,7 +15,7 @@ import vroong.laas.bff.model.OrderProjection;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class OrderCacheRepository {
+public class OrderRedisRepository {
 
     private final ReactiveRedisTemplate<String, Object> reactiveRedisTemplate;
 

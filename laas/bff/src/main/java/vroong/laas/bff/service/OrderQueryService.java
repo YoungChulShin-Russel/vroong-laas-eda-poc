@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import vroong.laas.bff.common.exception.BffException;
+import vroong.laas.bff.common.exception.BaseException;
 import vroong.laas.bff.common.exception.ErrorCode;
 import vroong.laas.bff.model.OrderProjection;
-import vroong.laas.bff.repository.mongo.OrderProjectionRepository;
-import vroong.laas.bff.repository.redis.OrderCacheRepository;
+import vroong.laas.bff.repository.mongo.OrderMongoRepository;
+import vroong.laas.bff.repository.redis.OrderRedisRepository;
 
 /**
  * Order Query Service
@@ -21,8 +21,8 @@ import vroong.laas.bff.repository.redis.OrderCacheRepository;
 @RequiredArgsConstructor
 public class OrderQueryService {
 
-    private final OrderCacheRepository cacheRepository;
-    private final OrderProjectionRepository projectionRepository;
+    private final OrderRedisRepository redisRepository;
+    private final OrderMongoRepository mongoRepository;
 
     /**
      * Order ID로 Projection 조회 (Redis → MongoDB Fallback 패턴)
@@ -38,7 +38,7 @@ public class OrderQueryService {
      * @return OrderProjection
      */
     public Mono<OrderProjection> getOrderProjection(Long orderId) {
-        return cacheRepository.findByOrderId(orderId)
+        return redisRepository.findByOrderId(orderId)
                 .doOnNext(projection -> 
                     log.debug("Cache HIT: Redis orderId={}", orderId))
                 .switchIfEmpty(Mono.defer(() -> {
@@ -47,7 +47,7 @@ public class OrderQueryService {
                 }))
                 .switchIfEmpty(Mono.error(() -> {
                     log.warn("Order not found: orderId={}", orderId);
-                    return new BffException(ErrorCode.QUERY_NOT_FOUND, "Order not found: " + orderId);
+                    return new BaseException(ErrorCode.QUERY_NOT_FOUND, "Order not found: " + orderId);
                 }));
     }
 
@@ -58,7 +58,7 @@ public class OrderQueryService {
      * @return OrderProjection
      */
     private Mono<OrderProjection> fetchFromMongo(Long orderId) {
-        return projectionRepository.findByOrderId(orderId)
+        return mongoRepository.findByOrderId(orderId)
                 .doOnNext(projection -> 
                     log.debug("Fallback SUCCESS: MongoDB orderId={}", orderId));
     }

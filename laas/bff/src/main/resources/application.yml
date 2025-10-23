@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: bff
+  profiles:
+    active: local
   
   # Reactive Redis Configuration
   data:

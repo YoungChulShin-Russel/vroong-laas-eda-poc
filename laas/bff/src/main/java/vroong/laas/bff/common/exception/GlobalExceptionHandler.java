@@ -19,8 +19,8 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(BffException.class)
-    public Mono<ResponseEntity<Map<String, Object>>> handleBffException(BffException e) {
+    @ExceptionHandler(BaseException.class)
+    public Mono<ResponseEntity<Map<String, Object>>> handleBffException(BaseException e) {
         logger.error("BFF Exception: {}", e.getMessage(), e);
         
         return Mono.just(ResponseEntity

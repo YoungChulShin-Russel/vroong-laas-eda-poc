@@ -28,13 +28,8 @@ dependencies {
     implementation 'io.github.resilience4j:resilience4j-reactor:2.2.0'
     implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
     
-    // Common Event Module (if needed for integration with other services)
-    implementation project(':common:event')
-    
     // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mongodb'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

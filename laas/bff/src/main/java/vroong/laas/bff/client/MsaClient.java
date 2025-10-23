@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import vroong.laas.bff.common.exception.BffException;
+import vroong.laas.bff.common.exception.BaseException;
 import vroong.laas.bff.common.exception.ErrorCode;
 
 import java.time.Duration;
@@ -107,11 +107,11 @@ public abstract class MsaClient {
     private Throwable handleError(Throwable error) {
         log.error("[{}] MSA call failed: {}", serviceName, error.getMessage(), error);
         
-        if (error instanceof BffException) {
+        if (error instanceof BaseException) {
             return error;
         }
         
-        return new BffException(
+        return new BaseException(
             ErrorCode.MSA_SERVICE_UNAVAILABLE,
             String.format("%s service unavailable: %s", serviceName, error.getMessage()),
             error

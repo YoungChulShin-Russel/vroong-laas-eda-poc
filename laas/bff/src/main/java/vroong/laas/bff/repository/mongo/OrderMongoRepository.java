@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-import vroong.laas.bff.common.exception.BffException;
+import vroong.laas.bff.common.exception.BaseException;
 import vroong.laas.bff.common.exception.ErrorCode;
 import vroong.laas.bff.model.OrderProjection;
 
@@ -20,7 +20,7 @@ import vroong.laas.bff.model.OrderProjection;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class OrderProjectionRepository {
+public class OrderMongoRepository {
 
     private final ReactiveMongoTemplate mongoTemplate;
     
@@ -42,7 +42,7 @@ public class OrderProjectionRepository {
                 .doOnNext(projection -> log.debug("Found in MongoDB: orderId={}", orderId))
                 .doOnError(e -> log.error("MongoDB query failed: orderId={}, error={}", 
                         orderId, e.getMessage(), e))
-                .onErrorMap(e -> new BffException(ErrorCode.MONGO_CONNECTION_ERROR, e));
+                .onErrorMap(e -> new BaseException(ErrorCode.MONGO_CONNECTION_ERROR, e));
     }
 
     /**
