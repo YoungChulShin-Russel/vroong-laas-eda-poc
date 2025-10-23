@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import vroong.laas.readmodel.projection.handler.common.DeliveryEventHandler;
 import vroong.laas.readmodel.projection.event.DeliveryEvent;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class DeliveryProjectionHandler {
 
     private final List<DeliveryEventHandler> deliveryEventHandlers;
 
-    public OrderProjection updateDeliveryStatus(OrderProjection existingProjection, DeliveryEvent deliveryEvent) {
+    public OrderInfo updateDeliveryStatus(OrderInfo existingProjection, DeliveryEvent deliveryEvent) {
         log.debug("Finding handler for delivery event type: {}", deliveryEvent.getKafkaEvent().getType());
         
         DeliveryEventHandler handler = deliveryEventHandlers.stream()

@@ -3,7 +3,7 @@ package vroong.laas.readmodel.projection.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 import vroong.laas.readmodel.common.repository.mongo.OrderProjectionMongoRepository;
 import vroong.laas.readmodel.common.repository.redis.OrderProjectionRedisRepository;
 
@@ -21,7 +21,7 @@ public class ProjectionService {
      * OrderProjection을 Redis와 MongoDB에 저장합니다.
      * Redis는 1일 TTL로 캐시 역할을 하고, MongoDB는 영구 저장소 역할을 합니다.
      */
-    public void saveOrderProjection(OrderProjection projection) {
+    public void saveOrderProjection(OrderInfo projection) {
         log.debug("Saving order projection: orderId={}", projection.getOrderId());
         
         try {
@@ -46,19 +46,19 @@ public class ProjectionService {
      * 2. Redis에 없으면 MongoDB에서 조회
      * 3. MongoDB에서 찾으면 Redis에 캐시
      */
-    public Optional<OrderProjection> getOrderProjection(Long orderId) {
+    public Optional<OrderInfo> getOrderProjection(Long orderId) {
         log.debug("Getting order projection: orderId={}", orderId);
         
         try {
             // 1. Redis에서 먼저 조회 (Reactive → Blocking)
-            OrderProjection redisResult = redisRepository.findByOrderId(orderId).block();
+            OrderInfo redisResult = redisRepository.findByOrderId(orderId).block();
             if (redisResult != null) {
                 log.debug("Found order projection in Redis: orderId={}", orderId);
                 return Optional.of(redisResult);
             }
             
             // 2. Redis에 없으면 MongoDB에서 조회 (Reactive → Blocking)
-            OrderProjection mongoResult = mongoRepository.findByOrderId(orderId).block();
+            OrderInfo mongoResult = mongoRepository.findByOrderId(orderId).block();
             if (mongoResult != null) {
                 log.debug("Found order projection in MongoDB, caching to Redis: orderId={}", orderId);
                 
@@ -88,18 +88,18 @@ public class ProjectionService {
      * OrderProjection을 업데이트합니다.
      * 기존 projection을 조회한 후 새로운 정보로 업데이트하여 저장합니다.
      */
-    public Optional<OrderProjection> updateOrderProjection(Long orderId, 
-                                                          java.util.function.Function<OrderProjection, OrderProjection> updateFunction) {
+    public Optional<OrderInfo> updateOrderProjection(Long orderId,
+                                                          java.util.function.Function<OrderInfo, OrderInfo> updateFunction) {
         log.debug("Updating order projection: orderId={}", orderId);
         
         try {
-            Optional<OrderProjection> existingProjection = getOrderProjection(orderId);
+            Optional<OrderInfo> existingProjection = getOrderProjection(orderId);
             if (existingProjection.isEmpty()) {
                 log.warn("Cannot update non-existent order projection: orderId={}", orderId);
                 return Optional.empty();
             }
             
-            OrderProjection updatedProjection = updateFunction.apply(existingProjection.get());
+            OrderInfo updatedProjection = updateFunction.apply(existingProjection.get());
             saveOrderProjection(updatedProjection);
             
             log.info("Successfully updated order projection: orderId={}", orderId);

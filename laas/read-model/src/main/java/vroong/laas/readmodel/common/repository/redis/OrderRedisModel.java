@@ -3,7 +3,7 @@ package vroong.laas.readmodel.common.repository.redis;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -68,7 +68,7 @@ public class OrderRedisModel {
         return "order:projection:" + orderId;
     }
     
-    public static OrderRedisModel from(OrderProjection projection) {
+    public static OrderRedisModel from(OrderInfo projection) {
         return OrderRedisModel.builder()
                 .orderId(projection.getOrderId())
                 .orderNumber(projection.getOrderNumber())
@@ -116,13 +116,13 @@ public class OrderRedisModel {
                 .build();
     }
     
-    public OrderProjection toProjection() {
-        return OrderProjection.builder()
+    public OrderInfo toProjection() {
+        return OrderInfo.builder()
                 .orderId(this.orderId)
                 .orderNumber(this.orderNumber)
                 .orderStatus(this.orderStatus)
                 .originLocation(this.originLocation != null ?
-                    OrderProjection.OrderLocation.builder()
+                    OrderInfo.OrderLocation.builder()
                             .contactName(this.originLocation.getContactName())
                             .contactPhoneNumber(this.originLocation.getContactPhoneNumber())
                             .latitude(this.originLocation.getLatitude())
@@ -132,7 +132,7 @@ public class OrderRedisModel {
                             .detailAddress(this.originLocation.getDetailAddress())
                             .build() : null)
                 .destinationLocation(this.destinationLocation != null ?
-                    OrderProjection.OrderLocation.builder()
+                    OrderInfo.OrderLocation.builder()
                             .contactName(this.destinationLocation.getContactName())
                             .contactPhoneNumber(this.destinationLocation.getContactPhoneNumber())
                             .latitude(this.destinationLocation.getLatitude())
@@ -143,7 +143,7 @@ public class OrderRedisModel {
                             .build() : null)
                 .items(this.items != null ?
                     this.items.stream()
-                            .map(item -> OrderProjection.OrderItem.builder()
+                            .map(item -> OrderInfo.OrderItem.builder()
                                     .itemName(item.getItemName())
                                     .quantity(item.getQuantity())
                                     .price(item.getPrice())

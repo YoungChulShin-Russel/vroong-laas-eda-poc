@@ -12,7 +12,7 @@ import vroong.laas.readmodel.query.client.dto.DeliveryServiceResponse;
 import vroong.laas.readmodel.query.client.dto.DispatchServiceResponse;
 import vroong.laas.readmodel.query.client.dto.OrderServiceResponse;
 import vroong.laas.readmodel.common.exception.OrderNotFoundException;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 import vroong.laas.readmodel.common.repository.mongo.OrderProjectionMongoRepository;
 import vroong.laas.readmodel.common.repository.redis.OrderProjectionRedisRepository;
 
@@ -49,7 +49,7 @@ public class OrderQueryService {
      * @param orderId Order ID
      * @return Mono<OrderProjection>
      */
-    public Mono<OrderProjection> getOrderProjection(Long orderId) {
+    public Mono<OrderInfo> getOrderProjection(Long orderId) {
         log.debug("Querying Order Projection: orderId={}", orderId);
         
         // 1. Redis 캐시 조회
@@ -88,7 +88,7 @@ public class OrderQueryService {
      * @param orderId Order ID
      * @return Mono<OrderProjection>
      */
-    private Mono<OrderProjection> fallbackToWriteService(Long orderId) {
+    private Mono<OrderInfo> fallbackToWriteService(Long orderId) {
         log.info("Fallback to Write Services (Order + Dispatch + Delivery): orderId={}", orderId);
         
         // 세 서비스를 병렬로 호출
@@ -113,7 +113,7 @@ public class OrderQueryService {
                         deliveryMono.defaultIfEmpty(null)
                     )
                     .map(tuple -> {
-                        OrderProjection projection = convertFromServiceResponses(
+                        OrderInfo projection = convertFromServiceResponses(
                             tuple.getT1(),  // Order
                             tuple.getT2(),  // Dispatch (nullable)
                             tuple.getT3()   // Delivery (nullable)
@@ -138,12 +138,12 @@ public class OrderQueryService {
      * @param deliveryData Delivery Service 응답 (옵셔널)
      * @return OrderProjection
      */
-    private OrderProjection convertFromServiceResponses(
+    private OrderInfo convertFromServiceResponses(
             OrderServiceResponse.OrderServiceData orderData,
             DispatchServiceResponse.DispatchServiceData dispatchData,
             DeliveryServiceResponse.DeliveryServiceData deliveryData) {
         
-        OrderProjection.OrderProjectionBuilder builder = OrderProjection.builder()
+        OrderInfo.OrderProjectionBuilder builder = OrderInfo.builder()
                 .orderId(orderData.getOrderId())
                 .orderNumber(orderData.getOrderNumber())
                 .orderStatus("ACTIVE") // 기본값
@@ -178,7 +178,7 @@ public class OrderQueryService {
      * 
      * 목적: 다음 조회 시 Fallback을 거치지 않도록
      */
-    private Mono<Void> saveFallbackData(OrderProjection projection) {
+    private Mono<Void> saveFallbackData(OrderInfo projection) {
         return mongoRepository.save(projection)
                 .doOnSuccess(saved -> log.debug("Saved fallback data to MongoDB: orderId={}", projection.getOrderId()))
                 .doOnError(e -> log.warn("Failed to save fallback data: orderId={}, error={}", 
@@ -190,7 +190,7 @@ public class OrderQueryService {
     /**
      * MongoDB 결과를 Redis에 캐싱 (Fire and Forget)
      */
-    private void cacheToRedis(Long orderId, OrderProjection projection) {
+    private void cacheToRedis(Long orderId, OrderInfo projection) {
         redisRepository.save(projection)
                 .doOnSuccess(saved -> log.debug("Cached to Redis: orderId={}", orderId))
                 .doOnError(e -> log.warn("Failed to cache to Redis: orderId={}, error={}", orderId, e.getMessage()))

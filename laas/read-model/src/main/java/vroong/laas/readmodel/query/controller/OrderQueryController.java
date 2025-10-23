@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 import vroong.laas.readmodel.query.service.OrderQueryService;
 
 /**
@@ -36,7 +36,7 @@ public class OrderQueryController {
      * @return Mono<OrderProjection>
      */
     @GetMapping("/{orderId}")
-    public Mono<ApiResponse<OrderProjection>> getOrder(@PathVariable Long orderId) {
+    public Mono<ApiResponse<OrderInfo>> getOrder(@PathVariable Long orderId) {
         log.info("GET /api/v1/orders/{}", orderId);
         
         return queryService.getOrderProjection(orderId)

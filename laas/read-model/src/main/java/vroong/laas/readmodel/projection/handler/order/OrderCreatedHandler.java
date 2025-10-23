@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.common.OrderEventHandler;
 import vroong.laas.readmodel.projection.event.OrderEvent;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,12 +21,12 @@ public class OrderCreatedHandler implements OrderEventHandler {
     }
 
     @Override
-    public OrderProjection handle(OrderEvent orderEvent) {
+    public OrderInfo handle(OrderEvent orderEvent) {
         log.debug("Handling order created event: orderId={}", orderEvent.getOrderId());
         
         Instant now = Instant.now();
         
-        OrderProjection projection = OrderProjection.builder()
+        OrderInfo projection = OrderInfo.builder()
                 .orderId(orderEvent.getOrderId())
                 .orderNumber(orderEvent.getOrderNumber())
                 .orderStatus(orderEvent.getOrderStatus())
@@ -59,14 +59,14 @@ public class OrderCreatedHandler implements OrderEventHandler {
         return projection;
     }
     
-    private OrderProjection.OrderLocation convertLocation(
+    private OrderInfo.OrderLocation convertLocation(
             vroong.laas.common.event.payload.order.OrderCreatedEventPayload.OrderCreatedOrderLocation location) {
         
         if (location == null) {
             return null;
         }
         
-        return OrderProjection.OrderLocation.builder()
+        return OrderInfo.OrderLocation.builder()
                 .contactName(location.getContactName())
                 .contactPhoneNumber(location.getContactPhoneNumber())
                 .latitude(location.getLatitude())
@@ -77,7 +77,7 @@ public class OrderCreatedHandler implements OrderEventHandler {
                 .build();
     }
     
-    private List<OrderProjection.OrderItem> convertItems(
+    private List<OrderInfo.OrderItem> convertItems(
             List<vroong.laas.common.event.payload.order.OrderCreatedEventPayload.OrderCreatedOrderItem> items) {
         
         if (items == null) {
@@ -85,7 +85,7 @@ public class OrderCreatedHandler implements OrderEventHandler {
         }
         
         return items.stream()
-                .map(item -> OrderProjection.OrderItem.builder()
+                .map(item -> OrderInfo.OrderItem.builder()
                         .itemName(item.getItemName())
                         .quantity(item.getQuantity())
                         .price(item.getPrice())

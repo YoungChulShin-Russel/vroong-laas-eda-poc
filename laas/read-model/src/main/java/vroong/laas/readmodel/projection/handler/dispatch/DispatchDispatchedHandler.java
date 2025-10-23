@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.common.DispatchEventHandler;
 import vroong.laas.readmodel.projection.event.DispatchEvent;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 import java.time.Instant;
 
@@ -19,7 +19,7 @@ public class DispatchDispatchedHandler implements DispatchEventHandler {
     }
 
     @Override
-    public OrderProjection handle(OrderProjection existingProjection, DispatchEvent dispatchEvent) {
+    public OrderInfo handle(OrderInfo existingProjection, DispatchEvent dispatchEvent) {
         log.debug("Handling dispatch dispatched event: dispatchId={}, orderId={}, agentId={}", 
                 dispatchEvent.getDispatchId(), dispatchEvent.getOrderId(), dispatchEvent.getAgentId());
         
@@ -31,7 +31,7 @@ public class DispatchDispatchedHandler implements DispatchEventHandler {
         
         Instant now = Instant.now();
         
-        OrderProjection updatedProjection = existingProjection.toBuilder()
+        OrderInfo updatedProjection = existingProjection.toBuilder()
                 .dispatchId(dispatchEvent.getDispatchId())
                 .agentId(dispatchEvent.getAgentId())
                 .deliveryFee(dispatchEvent.getDeliveryFee())

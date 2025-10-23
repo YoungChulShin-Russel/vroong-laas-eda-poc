@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @Builder(toBuilder = true)
-public class OrderProjection {
+public class OrderInfo {
     
     private final Long orderId;
     private final String orderNumber;

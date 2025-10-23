@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.common.DeliveryEventHandler;
 import vroong.laas.readmodel.projection.event.DeliveryEvent;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 import java.time.Instant;
 
@@ -19,13 +19,13 @@ public class DeliveryPickedUpHandler implements DeliveryEventHandler {
     }
 
     @Override
-    public OrderProjection handle(OrderProjection existingProjection, DeliveryEvent deliveryEvent) {
+    public OrderInfo handle(OrderInfo existingProjection, DeliveryEvent deliveryEvent) {
         log.debug("Handling delivery picked up event: deliveryId={}, agentId={}", 
                 deliveryEvent.getDeliveryId(), deliveryEvent.getAgentId());
         
         Instant now = Instant.now();
         
-        OrderProjection updatedProjection = existingProjection.toBuilder()
+        OrderInfo updatedProjection = existingProjection.toBuilder()
                 .deliveryStatus(deliveryEvent.getDeliveryStatus())
                 .deliveryPickedUpAt(deliveryEvent.getPickedUpAt())
                 .updatedAt(now)

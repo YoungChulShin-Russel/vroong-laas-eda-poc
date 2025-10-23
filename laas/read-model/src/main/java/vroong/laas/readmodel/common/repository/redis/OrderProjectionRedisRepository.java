@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 import java.time.Duration;
 
@@ -23,7 +23,7 @@ public class OrderProjectionRedisRepository {
     /**
      * Redis에 OrderProjection 저장 (Reactive)
      */
-    public Mono<OrderProjection> save(OrderProjection projection) {
+    public Mono<OrderInfo> save(OrderInfo projection) {
         String key = OrderRedisModel.generateKey(projection.getOrderId());
         OrderRedisModel redisModel = OrderRedisModel.from(projection);
         
@@ -39,7 +39,7 @@ public class OrderProjectionRedisRepository {
     /**
      * Redis에서 OrderProjection 조회 (Reactive)
      */
-    public Mono<OrderProjection> findByOrderId(Long orderId) {
+    public Mono<OrderInfo> findByOrderId(Long orderId) {
         String key = OrderRedisModel.generateKey(orderId);
         
         return reactiveRedisTemplate.opsForValue()

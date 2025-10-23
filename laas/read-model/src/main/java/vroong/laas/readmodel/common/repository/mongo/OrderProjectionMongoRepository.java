@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-import vroong.laas.readmodel.common.model.OrderProjection;
+import vroong.laas.readmodel.common.model.OrderInfo;
 
 /**
  * Reactive MongoDB Repository for Order Projection
@@ -22,7 +22,7 @@ public class OrderProjectionMongoRepository {
     /**
      * MongoDB에 OrderProjection 저장 (Reactive)
      */
-    public Mono<OrderProjection> save(OrderProjection projection) {
+    public Mono<OrderInfo> save(OrderInfo projection) {
         OrderDocument document = OrderDocument.from(projection);
         
         return reactiveMongoTemplate.save(document)
@@ -36,7 +36,7 @@ public class OrderProjectionMongoRepository {
     /**
      * MongoDB에서 OrderProjection 조회 (Reactive)
      */
-    public Mono<OrderProjection> findByOrderId(Long orderId) {
+    public Mono<OrderInfo> findByOrderId(Long orderId) {
         Query query = new Query(Criteria.where("orderId").is(orderId));
         
         return reactiveMongoTemplate.findOne(query, OrderDocument.class)
