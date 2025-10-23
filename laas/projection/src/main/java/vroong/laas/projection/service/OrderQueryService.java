@@ -5,7 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import vroong.laas.projection.client.DeliveryServiceClient;
+import vroong.laas.projection.client.DispatchServiceClient;
 import vroong.laas.projection.client.OrderServiceClient;
+import vroong.laas.projection.dto.DeliveryServiceResponse;
+import vroong.laas.projection.dto.DispatchServiceResponse;
 import vroong.laas.projection.dto.OrderServiceResponse;
 import vroong.laas.projection.exception.OrderNotFoundException;
 import vroong.laas.projection.model.projection.OrderProjection;
@@ -28,6 +32,8 @@ public class OrderQueryService {
     private final OrderProjectionRedisRepository redisRepository;
     private final OrderProjectionMongoRepository mongoRepository;
     private final OrderServiceClient orderServiceClient;
+    private final DispatchServiceClient dispatchServiceClient;
+    private final DeliveryServiceClient deliveryServiceClient;
     
     @Value("${projection.fallback.enabled:true}")
     private boolean fallbackEnabled;
@@ -77,39 +83,94 @@ public class OrderQueryService {
     /**
      * Write Service Fallback (Reactive)
      * 
-     * Read Model에 데이터가 없을 때 Write Service의 Query API 호출
+     * Read Model에 데이터가 없을 때 Order, Dispatch, Delivery Service를 모두 호출하여 조합
      * 
      * @param orderId Order ID
      * @return Mono<OrderProjection>
      */
     private Mono<OrderProjection> fallbackToWriteService(Long orderId) {
-        log.info("Fallback to Write Service: orderId={}", orderId);
+        log.info("Fallback to Write Services (Order + Dispatch + Delivery): orderId={}", orderId);
         
-        return orderServiceClient.getOrder(orderId)
-                .flatMap(response -> {
-                    if (response.isSuccess() && response.getData() != null) {
-                        OrderProjection projection = convertFromServiceResponse(response.getData());
-                        log.info("Fallback success: orderId={}", orderId);
-                        // Fallback 데이터를 MongoDB에 저장 (향후 조회 최적화)
-                        return saveFallbackData(projection)
-                                .thenReturn(projection);
-                    }
-                    log.warn("Fallback returned empty: orderId={}", orderId);
-                    return Mono.empty();
-                });
+        // 세 서비스를 병렬로 호출
+        Mono<OrderServiceResponse.OrderServiceData> orderMono = orderServiceClient.getOrder(orderId)
+                .filter(response -> response.isSuccess() && response.getData() != null)
+                .map(OrderServiceResponse::getData);
+        
+        Mono<DispatchServiceResponse.DispatchServiceData> dispatchMono = dispatchServiceClient.getDispatchByOrderId(orderId)
+                .filter(response -> response.isSuccess() && response.getData() != null)
+                .map(DispatchServiceResponse::getData);
+        
+        Mono<DeliveryServiceResponse.DeliveryServiceData> deliveryMono = deliveryServiceClient.getDeliveryByOrderId(orderId)
+                .filter(response -> response.isSuccess() && response.getData() != null)
+                .map(DeliveryServiceResponse::getData);
+        
+        // 세 결과를 조합 (Order는 필수, Dispatch/Delivery는 옵셔널)
+        return orderMono
+                .flatMap(orderData -> 
+                    Mono.zip(
+                        Mono.just(orderData),
+                        dispatchMono.defaultIfEmpty(null),
+                        deliveryMono.defaultIfEmpty(null)
+                    )
+                    .map(tuple -> {
+                        OrderProjection projection = convertFromServiceResponses(
+                            tuple.getT1(),  // Order
+                            tuple.getT2(),  // Dispatch (nullable)
+                            tuple.getT3()   // Delivery (nullable)
+                        );
+                        log.info("Fallback success (combined): orderId={}", orderId);
+                        return projection;
+                    })
+                )
+                .flatMap(projection -> 
+                    // Fallback 데이터를 MongoDB에 저장 (향후 조회 최적화)
+                    saveFallbackData(projection)
+                        .thenReturn(projection)
+                )
+                .doOnError(e -> log.error("Fallback failed: orderId={}, error={}", orderId, e.getMessage()));
     }
     
     /**
-     * Order Service Response → OrderProjection 변환
+     * Order + Dispatch + Delivery Service Response → OrderProjection 변환
+     * 
+     * @param orderData Order Service 응답 (필수)
+     * @param dispatchData Dispatch Service 응답 (옵셔널)
+     * @param deliveryData Delivery Service 응답 (옵셔널)
+     * @return OrderProjection
      */
-    private OrderProjection convertFromServiceResponse(OrderServiceResponse.OrderServiceData data) {
-        return OrderProjection.builder()
-                .orderId(data.getOrderId())
-                .orderNumber(data.getOrderNumber())
-                .orderStatus("UNKNOWN") // Write Service에서 제공하지 않는 필드
+    private OrderProjection convertFromServiceResponses(
+            OrderServiceResponse.OrderServiceData orderData,
+            DispatchServiceResponse.DispatchServiceData dispatchData,
+            DeliveryServiceResponse.DeliveryServiceData deliveryData) {
+        
+        OrderProjection.OrderProjectionBuilder builder = OrderProjection.builder()
+                .orderId(orderData.getOrderId())
+                .orderNumber(orderData.getOrderNumber())
+                .orderStatus("ACTIVE") // 기본값
                 .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+                .updatedAt(Instant.now());
+        
+        // Dispatch 정보 추가
+        if (dispatchData != null) {
+            builder
+                .dispatchId(dispatchData.getDispatchId())
+                .agentId(dispatchData.getAgentId())
+                .deliveryFee(dispatchData.getDeliveryFee())
+                .dispatchedAt(dispatchData.getDispatchedAt());
+        }
+        
+        // Delivery 정보 추가
+        if (deliveryData != null) {
+            builder
+                .deliveryId(deliveryData.getDeliveryId())
+                .deliveryStatus(deliveryData.getDeliveryStatus())
+                .deliveryStartedAt(deliveryData.getDeliveryStartedAt())
+                .deliveryPickedUpAt(deliveryData.getDeliveryPickedUpAt())
+                .deliveryDeliveredAt(deliveryData.getDeliveryDeliveredAt())
+                .deliveryCancelledAt(deliveryData.getDeliveryCancelledAt());
+        }
+        
+        return builder.build();
     }
     
     /**
