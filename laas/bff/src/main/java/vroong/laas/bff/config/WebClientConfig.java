@@ -23,6 +23,10 @@ public class WebClientConfig {
     @Value("${bff.command.msa-timeout-ms:10000}")
     private int timeoutMs;
 
+    /**
+     * 공통 WebClient.Builder
+     * 타임아웃 및 커넥션 설정이 적용된 Builder
+     */
     @Bean
     public WebClient.Builder webClientBuilder() {
         HttpClient httpClient = HttpClient.create()
@@ -35,6 +39,15 @@ public class WebClientConfig {
 
         return WebClient.builder()
             .clientConnector(new ReactorClientHttpConnector(httpClient));
+    }
+    
+    /**
+     * 범용 WebClient (MSA Client에서 사용)
+     */
+    @Bean
+    @org.springframework.context.annotation.Primary
+    public WebClient webClient(WebClient.Builder builder) {
+        return builder.build();
     }
 
     @Bean("orderServiceWebClient")

@@ -46,21 +46,6 @@ public class OrderProjectionRepository {
     }
 
     /**
-     * Order Number로 Projection 조회
-     * @param orderNumber Order Number
-     * @return OrderProjection
-     */
-    public Mono<OrderProjection> findByOrderNumber(String orderNumber) {
-        Query query = new Query(Criteria.where("orderNumber").is(orderNumber));
-        
-        return mongoTemplate.findOne(query, OrderProjection.class, COLLECTION)
-                .doOnNext(projection -> log.debug("Found in MongoDB: orderNumber={}", orderNumber))
-                .doOnError(e -> log.error("MongoDB query failed: orderNumber={}, error={}", 
-                        orderNumber, e.getMessage(), e))
-                .onErrorMap(e -> new BffException(ErrorCode.MONGO_CONNECTION_ERROR, e));
-    }
-
-    /**
      * Order ID 존재 여부 확인
      * @param orderId Order ID
      * @return 존재 여부

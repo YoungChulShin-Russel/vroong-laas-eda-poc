@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8004
   shutdown: graceful
 
 spring:
@@ -36,11 +36,11 @@ bff:
     msa-timeout-ms: 10000
   services:
     order-service:
+      base-url: http://localhost:8080
+    dispatch-service:
       base-url: http://localhost:8081
     delivery-service:
       base-url: http://localhost:8082
-    dispatch-service:
-      base-url: http://localhost:8084
 
 # Management and Monitoring
 management:

@@ -52,25 +52,6 @@ public class OrderQueryService {
     }
 
     /**
-     * Order Number로 Projection 조회
-     * MongoDB에서만 조회 (orderNumber는 Redis 키로 사용되지 않음)
-     * 
-     * @param orderNumber Order Number
-     * @return OrderProjection
-     */
-    public Mono<OrderProjection> getOrderProjectionByNumber(String orderNumber) {
-        return projectionRepository.findByOrderNumber(orderNumber)
-                .doOnNext(projection -> 
-                    log.debug("Found by orderNumber={}, orderId={}", 
-                            orderNumber, projection.getOrderId()))
-                .switchIfEmpty(Mono.error(() -> {
-                    log.warn("Order not found: orderNumber={}", orderNumber);
-                    return new BffException(ErrorCode.QUERY_NOT_FOUND, 
-                            "Order not found: " + orderNumber);
-                }));
-    }
-
-    /**
      * MongoDB에서 조회 (Fallback)
      * 
      * @param orderId Order ID

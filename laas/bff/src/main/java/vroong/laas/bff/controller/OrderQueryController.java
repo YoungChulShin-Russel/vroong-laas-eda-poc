@@ -39,24 +39,5 @@ public class OrderQueryController {
                 .doOnError(e -> log.error("Query failed: orderId={}, error={}", 
                         orderId, e.getMessage()));
     }
-
-    /**
-     * Order Number로 주문 조회
-     * 
-     * GET /api/v1/orders/by-number?orderNumber={orderNumber}
-     * 
-     * @param orderNumber Order Number
-     * @return OrderProjection
-     */
-    @GetMapping("/by-number")
-    public Mono<ApiResponse<OrderProjection>> getOrderByNumber(
-            @RequestParam String orderNumber) {
-        log.debug("GET /api/v1/orders/by-number: {}", orderNumber);
-        
-        return queryService.getOrderProjectionByNumber(orderNumber)
-                .map(ApiResponse::success)
-                .doOnError(e -> log.error("Query failed: orderNumber={}, error={}", 
-                        orderNumber, e.getMessage()));
-    }
 }
 
