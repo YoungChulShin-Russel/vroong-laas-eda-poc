@@ -6,10 +6,10 @@ import org.springframework.kafka.annotation.EnableKafka;
 
 @EnableKafka
 @SpringBootApplication
-public class ProjectionApplication {
+public class ReadModelApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProjectionApplication.class, args);
+		SpringApplication.run(ReadModelApplication.class, args);
 	}
 
 }

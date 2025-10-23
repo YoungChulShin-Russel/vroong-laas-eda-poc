@@ -35,7 +35,7 @@ public class OrderQueryService {
     private final DispatchServiceClient dispatchServiceClient;
     private final DeliveryServiceClient deliveryServiceClient;
     
-    @Value("${projection.fallback.enabled:true}")
+    @Value("${readmodel.fallback.enabled:true}")
     private boolean fallbackEnabled;
     
     /**
@@ -143,7 +143,7 @@ public class OrderQueryService {
             DispatchServiceResponse.DispatchServiceData dispatchData,
             DeliveryServiceResponse.DeliveryServiceData deliveryData) {
         
-        OrderInfo.OrderProjectionBuilder builder = OrderInfo.builder()
+        OrderInfo.OrderInfoBuilder builder = OrderInfo.builder()
                 .orderId(orderData.getOrderId())
                 .orderNumber(orderData.getOrderNumber())
                 .orderStatus("ACTIVE") // 기본값

@@ -1,7 +1,7 @@
 # Profile: api
 # Query API만 활성화 (Event Consumer 비활성화)
 
-projection:
+readmodel:
   features:
     consumer:
       enabled: false

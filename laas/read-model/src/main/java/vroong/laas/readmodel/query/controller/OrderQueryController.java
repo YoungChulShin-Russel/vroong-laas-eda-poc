@@ -19,7 +19,7 @@ import vroong.laas.readmodel.query.service.OrderQueryService;
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 @ConditionalOnProperty(
-    name = "projection.features.api.enabled",
+    name = "readmodel.features.api.enabled",
     havingValue = "true",
     matchIfMissing = true
 )

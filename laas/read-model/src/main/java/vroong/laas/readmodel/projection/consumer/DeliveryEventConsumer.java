@@ -18,7 +18,7 @@ import vroong.laas.readmodel.projection.service.ProjectionOrchestrator;
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(
-    name = "projection.features.consumer.enabled",
+    name = "readmodel.features.consumer.enabled",
     havingValue = "true",
     matchIfMissing = true
 )
@@ -26,7 +26,7 @@ public class DeliveryEventConsumer {
 
     private final ProjectionOrchestrator projectionOrchestrator;
 
-    @KafkaListener(topics = "${projection.topics.delivery}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "${readmodel.topics.delivery}", groupId = "${spring.kafka.consumer.group-id}")
     public void handleDeliveryEvent(
             @Payload String message,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,

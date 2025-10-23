@@ -5,13 +5,13 @@ server:
 
 spring:
   application:
-    name: projection
+    name: read-model
   
   # Kafka Configuration
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: projection-server
+      group-id: read-model-server
   
   # Redis Configuration  
   data:
@@ -35,7 +35,7 @@ spring:
       authentication-database: admin
 
 # Custom Configuration
-projection:
+readmodel:
   redis:
     ttl-hours: 24
   topics:
