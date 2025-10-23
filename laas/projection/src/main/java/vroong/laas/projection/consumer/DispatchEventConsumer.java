@@ -2,6 +2,7 @@ package vroong.laas.projection.consumer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -16,6 +17,11 @@ import vroong.laas.projection.service.ProjectionOrchestrator;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(
+    name = "projection.features.consumer.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class DispatchEventConsumer {
 
     private final ProjectionOrchestrator projectionOrchestrator;

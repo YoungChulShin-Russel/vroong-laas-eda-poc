@@ -1,5 +1,5 @@
 server:
-  port: 8004
+  port: 8084
   shutdown: graceful
 
 spring:
@@ -7,6 +7,8 @@ spring:
     name: bff
   profiles:
     active: local
+  jackson: # Jackson JSON 직렬화 설정
+    default-property-inclusion: non_null  # null 필드 제외 (REST API 모범 사례)
   
   # Reactive Redis Configuration
   data:
@@ -43,25 +45,6 @@ bff:
       base-url: http://localhost:8081
     delivery-service:
       base-url: http://localhost:8082
-
-# Management and Monitoring
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-    tags:
-      application: ${spring.application.name}
 
 # Logging Configuration
 logging:

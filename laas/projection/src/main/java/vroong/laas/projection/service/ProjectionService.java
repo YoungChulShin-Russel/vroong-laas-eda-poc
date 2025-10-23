@@ -25,11 +25,11 @@ public class ProjectionService {
         log.debug("Saving order projection: orderId={}", projection.getOrderId());
         
         try {
-            // Redis에 저장 (1일 TTL)
-            redisRepository.save(projection);
+            // Redis에 저장 (1일 TTL, Reactive → Blocking)
+            redisRepository.save(projection).block();
             
-            // MongoDB에 저장 (영구 보관)
-            mongoRepository.save(projection);
+            // MongoDB에 저장 (영구 보관, Reactive → Blocking)
+            mongoRepository.save(projection).block();
             
             log.info("Successfully saved order projection: orderId={}", projection.getOrderId());
             
@@ -50,28 +50,28 @@ public class ProjectionService {
         log.debug("Getting order projection: orderId={}", orderId);
         
         try {
-            // 1. Redis에서 먼저 조회
-            Optional<OrderProjection> redisResult = redisRepository.findByOrderId(orderId);
-            if (redisResult.isPresent()) {
+            // 1. Redis에서 먼저 조회 (Reactive → Blocking)
+            OrderProjection redisResult = redisRepository.findByOrderId(orderId).block();
+            if (redisResult != null) {
                 log.debug("Found order projection in Redis: orderId={}", orderId);
-                return redisResult;
+                return Optional.of(redisResult);
             }
             
-            // 2. Redis에 없으면 MongoDB에서 조회
-            Optional<OrderProjection> mongoResult = mongoRepository.findByOrderId(orderId);
-            if (mongoResult.isPresent()) {
+            // 2. Redis에 없으면 MongoDB에서 조회 (Reactive → Blocking)
+            OrderProjection mongoResult = mongoRepository.findByOrderId(orderId).block();
+            if (mongoResult != null) {
                 log.debug("Found order projection in MongoDB, caching to Redis: orderId={}", orderId);
                 
                 // 3. MongoDB에서 찾으면 Redis에 캐시
                 try {
-                    redisRepository.save(mongoResult.get());
+                    redisRepository.save(mongoResult).block();
                 } catch (Exception e) {
                     log.warn("Failed to cache projection to Redis: orderId={}, error={}", 
                             orderId, e.getMessage());
                     // Redis 캐싱 실패는 무시하고 MongoDB 결과 반환
                 }
                 
-                return mongoResult;
+                return Optional.of(mongoResult);
             }
             
             log.debug("Order projection not found: orderId={}", orderId);
@@ -137,8 +137,9 @@ public class ProjectionService {
      */
     public boolean existsOrderProjection(Long orderId) {
         try {
-            return redisRepository.existsByOrderId(orderId) || 
-                   mongoRepository.existsByOrderId(orderId);
+            Boolean redisExists = redisRepository.existsByOrderId(orderId).block();
+            Boolean mongoExists = mongoRepository.existsByOrderId(orderId).block();
+            return Boolean.TRUE.equals(redisExists) || Boolean.TRUE.equals(mongoExists);
         } catch (Exception e) {
             log.error("Failed to check order projection existence: orderId={}, error={}", 
                     orderId, e.getMessage(), e);

@@ -3,6 +3,9 @@ package vroong.laas.bff;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * BFF Application
+ */
 @SpringBootApplication
 public class BffApplication {
 

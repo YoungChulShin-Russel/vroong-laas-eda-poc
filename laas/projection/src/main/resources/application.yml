@@ -42,6 +42,22 @@ projection:
     order: order.event
     delivery: delivery.event
     dispatch: dispatch.event
+  fallback:
+    enabled: true  # Write Service Fallback 활성화
+  features:
+    consumer:
+      enabled: true  # Event Consumer 활성화
+    api:
+      enabled: true  # Query API 활성화
+
+# MSA Service URLs (Fallback용)
+msa:
+  order:
+    url: http://localhost:8081
+  dispatch:
+    url: http://localhost:8082
+  delivery:
+    url: http://localhost:8083
 
 # Management and Monitoring
 management:

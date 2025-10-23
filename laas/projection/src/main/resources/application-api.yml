@@ -1,0 +1,23 @@
+# Profile: api
+# Query API만 활성화 (Event Consumer 비활성화)
+
+projection:
+  features:
+    consumer:
+      enabled: false
+    api:
+      enabled: true
+
+# Kafka 비활성화
+spring:
+  kafka:
+    consumer:
+      enable-auto-commit: false
+
+logging:
+  level:
+    vroong.laas.projection.consumer: WARN
+    vroong.laas.projection.handler: WARN
+    vroong.laas.projection.controller: DEBUG
+    vroong.laas.projection.service: DEBUG
+

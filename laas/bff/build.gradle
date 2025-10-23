@@ -6,10 +6,6 @@ dependencies {
     // Spring Boot WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     
-    // Actuator & Monitoring
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    
     // Reactive Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     

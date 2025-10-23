@@ -1,0 +1,16 @@
+# Profile: consumer
+# Event Consumer만 활성화 (Query API 비활성화)
+
+projection:
+  features:
+    consumer:
+      enabled: true
+    api:
+      enabled: false
+
+logging:
+  level:
+    vroong.laas.projection.consumer: DEBUG
+    vroong.laas.projection.handler: DEBUG
+    vroong.laas.projection.controller: WARN
+

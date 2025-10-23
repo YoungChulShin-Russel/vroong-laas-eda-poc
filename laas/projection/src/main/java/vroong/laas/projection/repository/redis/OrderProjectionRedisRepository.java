@@ -2,84 +2,86 @@ package vroong.laas.projection.repository.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 import vroong.laas.projection.model.projection.OrderProjection;
 import vroong.laas.projection.model.redis.OrderRedisModel;
 
 import java.time.Duration;
-import java.util.Optional;
 
+/**
+ * Reactive Redis Repository for Order Projection
+ */
 @Slf4j
 @Repository
 @RequiredArgsConstructor
 public class OrderProjectionRedisRepository {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final ReactiveRedisTemplate<String, Object> reactiveRedisTemplate;
     private final Duration redisTtl;
 
-    public void save(OrderProjection projection) {
+    /**
+     * Redis에 OrderProjection 저장 (Reactive)
+     */
+    public Mono<OrderProjection> save(OrderProjection projection) {
         String key = OrderRedisModel.generateKey(projection.getOrderId());
         OrderRedisModel redisModel = OrderRedisModel.from(projection);
         
-        try {
-            redisTemplate.opsForValue().set(key, redisModel, redisTtl);
-            log.debug("Saved order projection to Redis: orderId={}, key={}", 
-                    projection.getOrderId(), key);
-        } catch (Exception e) {
-            log.error("Failed to save order projection to Redis: orderId={}, error={}", 
-                    projection.getOrderId(), e.getMessage(), e);
-            throw new RuntimeException("Failed to save to Redis", e);
-        }
+        return reactiveRedisTemplate.opsForValue()
+                .set(key, redisModel, redisTtl)
+                .doOnSuccess(success -> log.debug("Saved order projection to Redis: orderId={}, key={}", 
+                        projection.getOrderId(), key))
+                .doOnError(e -> log.error("Failed to save order projection to Redis: orderId={}, error={}", 
+                        projection.getOrderId(), e.getMessage()))
+                .thenReturn(projection);
     }
 
-    public Optional<OrderProjection> findByOrderId(Long orderId) {
+    /**
+     * Redis에서 OrderProjection 조회 (Reactive)
+     */
+    public Mono<OrderProjection> findByOrderId(Long orderId) {
         String key = OrderRedisModel.generateKey(orderId);
         
-        try {
-            Object result = redisTemplate.opsForValue().get(key);
-            if (result instanceof OrderRedisModel redisModel) {
-                OrderProjection projection = redisModel.toProjection();
-                log.debug("Found order projection in Redis: orderId={}", orderId);
-                return Optional.of(projection);
-            }
-            
-            log.debug("Order projection not found in Redis: orderId={}", orderId);
-            return Optional.empty();
-            
-        } catch (Exception e) {
-            log.error("Failed to find order projection in Redis: orderId={}, error={}", 
-                    orderId, e.getMessage(), e);
-            return Optional.empty();
-        }
+        return reactiveRedisTemplate.opsForValue()
+                .get(key)
+                .cast(OrderRedisModel.class)
+                .map(OrderRedisModel::toProjection)
+                .doOnNext(projection -> log.debug("Found order projection in Redis: orderId={}", orderId))
+                .doOnError(e -> log.error("Failed to find order projection in Redis: orderId={}, error={}", 
+                        orderId, e.getMessage()))
+                .onErrorResume(e -> Mono.empty());
     }
 
-    public void deleteByOrderId(Long orderId) {
+    /**
+     * Redis에서 OrderProjection 삭제 (Reactive)
+     */
+    public Mono<Boolean> deleteByOrderId(Long orderId) {
         String key = OrderRedisModel.generateKey(orderId);
         
-        try {
-            Boolean deleted = redisTemplate.delete(key);
-            if (Boolean.TRUE.equals(deleted)) {
-                log.debug("Deleted order projection from Redis: orderId={}", orderId);
-            } else {
-                log.debug("Order projection not found for deletion in Redis: orderId={}", orderId);
-            }
-        } catch (Exception e) {
-            log.error("Failed to delete order projection from Redis: orderId={}, error={}", 
-                    orderId, e.getMessage(), e);
-        }
+        return reactiveRedisTemplate.delete(key)
+                .map(count -> count > 0)
+                .doOnNext(deleted -> {
+                    if (deleted) {
+                        log.debug("Deleted order projection from Redis: orderId={}", orderId);
+                    } else {
+                        log.debug("Order projection not found for deletion in Redis: orderId={}", orderId);
+                    }
+                })
+                .doOnError(e -> log.error("Failed to delete order projection from Redis: orderId={}, error={}", 
+                        orderId, e.getMessage()))
+                .onErrorReturn(false);
     }
 
-    public boolean existsByOrderId(Long orderId) {
+    /**
+     * Redis에 OrderProjection 존재 여부 확인 (Reactive)
+     */
+    public Mono<Boolean> existsByOrderId(Long orderId) {
         String key = OrderRedisModel.generateKey(orderId);
         
-        try {
-            Boolean exists = redisTemplate.hasKey(key);
-            return Boolean.TRUE.equals(exists);
-        } catch (Exception e) {
-            log.error("Failed to check existence in Redis: orderId={}, error={}", 
-                    orderId, e.getMessage(), e);
-            return false;
-        }
+        return reactiveRedisTemplate.hasKey(key)
+                .doOnError(e -> log.error("Failed to check existence in Redis: orderId={}, error={}", 
+                        orderId, e.getMessage()))
+                .onErrorReturn(false);
     }
 }

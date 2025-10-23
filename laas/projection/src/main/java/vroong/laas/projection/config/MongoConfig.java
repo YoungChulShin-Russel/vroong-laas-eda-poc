@@ -1,24 +1,23 @@
 package vroong.laas.projection.config;
 
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
+import com.mongodb.ConnectionString;
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClients;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguration;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
-import java.util.Collections;
-
+/**
+ * Reactive MongoDB Configuration
+ */
 @Configuration
-@EnableMongoRepositories(basePackages = "vroong.laas.projection.repository.mongo")
-public class MongoConfig extends AbstractMongoClientConfiguration {
+@EnableReactiveMongoRepositories(basePackages = "vroong.laas.projection.repository.mongo")
+public class MongoConfig extends AbstractReactiveMongoConfiguration {
 
     @Value("${spring.data.mongodb.host}")
     private String host;
@@ -44,27 +43,19 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     }
 
     @Override
-    public MongoClient mongoClient() {
-        // 인증 정보 생성
-        MongoCredential credential = MongoCredential.createCredential(
-            username, 
-            authenticationDatabase, 
-            password.toCharArray()
+    public MongoClient reactiveMongoClient() {
+        // MongoDB 연결 문자열 생성
+        String connectionString = String.format(
+            "mongodb://%s:%s@%s:%d/%s?authSource=%s",
+            username, password, host, port, database, authenticationDatabase
         );
-
-        // MongoDB 클라이언트 설정
-        MongoClientSettings settings = MongoClientSettings.builder()
-            .applyToClusterSettings(builder -> 
-                builder.hosts(Collections.singletonList(new ServerAddress(host, port))))
-            .credential(credential)
-            .build();
-
-        return MongoClients.create(settings);
+        
+        return MongoClients.create(new ConnectionString(connectionString));
     }
 
     @Bean
-    public MongoTemplate mongoTemplate() {
-        MongoTemplate template = new MongoTemplate(mongoClient(), getDatabaseName());
+    public ReactiveMongoTemplate reactiveMongoTemplate() {
+        ReactiveMongoTemplate template = new ReactiveMongoTemplate(reactiveMongoClient(), getDatabaseName());
         MappingMongoConverter converter = (MappingMongoConverter) template.getConverter();
         // "_class" 필드 제거 (타입 정보 저장 안 함)
         converter.setTypeMapper(new DefaultMongoTypeMapper(null));

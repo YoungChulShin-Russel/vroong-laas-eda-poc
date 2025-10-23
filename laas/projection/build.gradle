@@ -5,17 +5,19 @@ plugins {
 dependencies {
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // WebFlux (Reactive)
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka'
     
-    // Redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Reactive Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     
-    // MongoDB
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    // Reactive MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
     
     // JSON Processing
     implementation 'com.fasterxml.jackson.core:jackson-databind'

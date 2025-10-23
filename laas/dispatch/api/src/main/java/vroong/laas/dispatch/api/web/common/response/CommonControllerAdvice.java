@@ -24,6 +24,7 @@ public class CommonControllerAdvice {
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(value = Exception.class)
   public <T> ApiResponse<T> onException(Exception e) {
+    log.error("[onException] {}", e.getMessage(), e);
     return ApiResponse.fail(ErrorCode.COMMON_SYSTEM_ERROR);
   }
 
