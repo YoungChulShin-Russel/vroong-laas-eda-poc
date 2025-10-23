@@ -22,3 +22,4 @@ include 'order:data'
 include 'order:api'
 
 include 'projection'
+include 'bff'
