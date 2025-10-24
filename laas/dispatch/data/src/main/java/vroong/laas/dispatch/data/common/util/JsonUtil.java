@@ -1,36 +1,34 @@
 package vroong.laas.dispatch.data.common.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JsonUtil {
 
-  private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
-      .addModule(new JavaTimeModule())
-      .addModule(new ParameterNamesModule())
+  private static final JsonMapper JSON_MAPPER = JsonMapper.builder()
       .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-      .defaultPropertyInclusion(
-          JsonInclude.Value.construct(
-              JsonInclude.Include.NON_NULL,
-              JsonInclude.Include.NON_NULL))
-      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+      .changeDefaultPropertyInclusion(
+          incl -> {
+            incl.withContentInclusion(JsonInclude.Include.NON_NULL);
+            incl.withValueInclusion(JsonInclude.Include.NON_NULL);
+            return incl;
+          })
+      .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
       .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .build();
 
-  public static ObjectMapper objectMapper() {
-    return OBJECT_MAPPER;
+  public static JsonMapper jsonMapper() {
+    return JSON_MAPPER;
   }
 
   public static String toJson(Object value) {
@@ -38,8 +36,8 @@ public final class JsonUtil {
       return null;
     }
     try {
-      return OBJECT_MAPPER.writeValueAsString(value);
-    } catch (JsonProcessingException ex) {
+      return JSON_MAPPER.writeValueAsString(value);
+    } catch (JacksonException ex) {
       throw new IllegalArgumentException("JSON 직렬화에 실패했습니다.", ex);
     }
   }
@@ -49,8 +47,8 @@ public final class JsonUtil {
       return null;
     }
     try {
-      return OBJECT_MAPPER.readValue(json, type);
-    } catch (JsonProcessingException ex) {
+      return JSON_MAPPER.readValue(json, type);
+    } catch (JacksonException ex) {
       throw new IllegalArgumentException("JSON 역직렬화에 실패했습니다.", ex);
     }
   }
@@ -60,8 +58,8 @@ public final class JsonUtil {
       return null;
     }
     try {
-      return OBJECT_MAPPER.readValue(json, type);
-    } catch (JsonProcessingException ex) {
+      return JSON_MAPPER.readValue(json, type);
+    } catch (JacksonException ex) {
       throw new IllegalArgumentException("JSON 역직렬화에 실패했습니다.", ex);
     }
   }
