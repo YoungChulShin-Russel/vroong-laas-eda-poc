@@ -5,12 +5,15 @@ plugins {
 dependencies {
     // Spring Cloud Gateway - API Gateway 구현
     // https://spring.io/projects/spring-cloud-gateway
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webflux'
+    
+    // Reactor Test - Reactive Stream 테스트 지원
+    testImplementation 'io.projectreactor:reactor-test'
 }
 
 // Spring Cloud 버전 관리
 ext {
-    set('springCloudVersion', '2024.0.0-RC1')
+    set('springCloudVersion', "2025.1.0-M4")
 }
 
 dependencyManagement {
