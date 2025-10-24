@@ -22,4 +22,3 @@ include 'order:data'
 include 'order:api'
 
 include 'read-model'
-include 'bff'
