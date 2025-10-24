@@ -24,7 +24,7 @@ spring:
       group-id: delivery-server
 
 server:
-  port: 8082
+  port: 8083
   shutdown: graceful  # Graceful Shutdown 활성화
 
 management:

@@ -1,11 +1,13 @@
 
 server:
-  port: 8083
+  port: 8084
   shutdown: graceful
 
 spring:
   application:
     name: read-model
+  jackson:
+    default-property-inclusion: non_null
   
   # Kafka Configuration
   kafka:

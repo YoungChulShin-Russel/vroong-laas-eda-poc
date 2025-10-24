@@ -20,7 +20,7 @@ spring:
     show-sql: true           # 로컬: SQL 로그 출력
 
 server:
-  port: 8080
+  port: 8081
   shutdown: graceful  # Graceful Shutdown 활성화
 
 management:

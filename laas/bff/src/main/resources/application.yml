@@ -3,30 +3,23 @@ spring:
     name: bff
 
 server:
-  port: 8085
+  port: 8080
 
 # Gateway 라우팅 설정 (환경별로 오버라이드 가능)
 gateway:
   order:
     route-id: order-commands
-    path: /api/orders
-    methods:
-      - POST
-    uri: http://localhost:8080
-  
-  delivery:
-    route-id: delivery-commands
-    path: /api/deliveries/**
+    path: /api/v1/orders/**
     methods:
       - POST
       - PUT
       - PATCH
       - DELETE
     uri: http://localhost:8081
-  
+
   dispatch:
     route-id: dispatch-commands
-    path: /api/dispatches/**
+    path: /api/v1/dispatches/**
     methods:
       - POST
       - PUT
@@ -34,10 +27,21 @@ gateway:
       - DELETE
     uri: http://localhost:8082
   
+  delivery:
+    route-id: delivery-commands
+    path: /api/v1/deliveries/**
+    methods:
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    uri: http://localhost:8083
+
+  
   read-model:
     route-id: read-model-queries
-    path: /api/**
+    path: /api/v1/orders/**
     methods:
       - GET
-    uri: http://localhost:8083
+    uri: http://localhost:8084
 
