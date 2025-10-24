@@ -21,4 +21,5 @@ include 'order:core-enum'
 include 'order:data'
 include 'order:api'
 
+include 'bff'
 include 'read-model'

@@ -1,13 +1,13 @@
-package vroong.laas.readmodel;
+package vroong.laas.bff;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ReadModelApplicationTests {
+class BffApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+  @Test
+  void contextLoads() {
+  }
 
 }
