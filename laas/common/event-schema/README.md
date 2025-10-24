@@ -4,22 +4,37 @@ AWS Glue Schema Registry를 사용한 Avro 기반 이벤트 스키마 정의 모
 
 ## 개요
 
-이 모듈은 Kafka 이벤트의 Avro 스키마를 정의하고 관리합니다. 향후 멀티 레포 전환 시 독립 repository로 분리될 예정입니다.
+이 모듈은 Kafka 이벤트의 Avro 스키마를 정의하고 관리합니다. 
+향후 멀티 레포 전환 시 독립 repository로 분리될 예정입니다.
+
+### 주요 특징
+- ✅ **환경 독립적**: 물리적 토픽 이름은 각 서비스에서 관리
+- ✅ **타입 안전**: Avro SpecificRecord 기반
+- ✅ **AWS Glue 통합**: Schema Registry 자동 등록 및 버전 관리
+- ✅ **멀티 레포 대비**: 독립적인 스키마 모듈로 설계
 
 ## 디렉토리 구조
 
 ```
-src/main/avro/
-├── common/              # 공통 스키마
-│   └── KafkaEvent.avsc
-├── order/               # Order 도메인 스키마
-│   └── OrderCreatedEventPayload.avsc
-├── delivery/            # Delivery 도메인 스키마
-│   ├── DeliveryStartedEventPayload.avsc
-│   ├── DeliveryPickedUpEventPayload.avsc
-│   └── DeliveryDeliveredEventPayload.avsc
-└── dispatch/            # Dispatch 도메인 스키마
-    └── DispatchDispatchedEventPayload.avsc
+src/main/
+├── avro/                                    # Avro 스키마 정의
+│   ├── common/
+│   │   └── KafkaEvent.avsc
+│   ├── order/
+│   │   └── OrderCreatedEventPayload.avsc
+│   ├── delivery/
+│   │   ├── DeliveryStartedEventPayload.avsc
+│   │   ├── DeliveryPickedUpEventPayload.avsc
+│   │   └── DeliveryDeliveredEventPayload.avsc
+│   └── dispatch/
+│       └── DispatchDispatchedEventPayload.avsc
+│
+└── java/vroong/laas/common/event/          # Java 클래스
+    ├── KafkaEventType.java                 # 이벤트 타입 정의
+    ├── KafkaEventSource.java               # 이벤트 소스 정의
+    ├── TopicResolver.java                  # 토픽 매핑 인터페이스
+    └── util/
+        └── AvroSerializer.java             # Avro 직렬화 유틸리티
 ```
 
 ## 빌드
@@ -50,58 +65,144 @@ dependencies {
 }
 ```
 
-### Avro 클래스 사용 예시
+### Producer 사용 예시
 
 ```java
+import vroong.laas.common.event.OrderEventType;  // 도메인별 EventType
+import vroong.laas.common.event.KafkaEventSource;
+import vroong.laas.common.event.TopicResolver;
 import vroong.laas.common.event.avro.KafkaEvent;
 import vroong.laas.common.event.avro.payload.order.OrderCreatedEventPayload;
-import vroong.laas.common.event.avro.payload.order.OrderLocation;
-import vroong.laas.common.event.avro.payload.order.OrderItem;
+import vroong.laas.common.event.util.AvroSerializer;
 
-import java.math.BigDecimal;
-import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.UUID;
-
-// OrderLocation 생성
-OrderLocation origin = OrderLocation.newBuilder()
-    .setContactName("홍길동")
-    .setContactPhoneNumber("010-1234-5678")
-    .setLatitude(ByteBuffer.wrap(new BigDecimal("37.5665").unscaledValue().toByteArray()))
-    .setLongitude(ByteBuffer.wrap(new BigDecimal("126.9780").unscaledValue().toByteArray()))
-    .setJibunAddress("서울시 중구")
-    .setRoadAddress("서울시 중구 세종대로")
-    .setDetailAddress("101동 101호")
-    .build();
-
-// OrderItem 생성
-OrderItem item = OrderItem.newBuilder()
-    .setItemName("치킨")
-    .setQuantity(2)
-    .setPrice(ByteBuffer.wrap(new BigDecimal("20000").unscaledValue().toByteArray()))
-    .build();
-
-// OrderCreatedEventPayload 생성
+// 1. Payload 생성
 OrderCreatedEventPayload payload = OrderCreatedEventPayload.newBuilder()
     .setOrderId(12345L)
     .setOrderNumber("ORD-2024-001")
     .setOrderStatus("CREATED")
-    .setOriginLocation(origin)
-    .setDestinationLocation(destination)
-    .setItems(List.of(item))
-    .setOrderedAt(Instant.now().toEpochMilli())
+    // ...
     .build();
 
-// KafkaEvent 생성
+// 2. KafkaEvent 생성
 KafkaEvent event = KafkaEvent.newBuilder()
     .setEventId(UUID.randomUUID().toString())
-    .setType("order.order.created")
-    .setSource("ORDER")
+    .setType(OrderEventType.ORDER_CREATED.getValue())  // 도메인별 타입
+    .setSource(KafkaEventSource.ORDER.getValue())
     .setTimestamp(System.currentTimeMillis())
     .setSchemaVersion("1.0")
-    .setPayload(ByteBuffer.wrap(serializePayload(payload)))
+    .setPayload(ByteBuffer.wrap(AvroSerializer.serialize(payload)))
     .build();
+
+// 3. 토픽 결정
+String topic = topicResolver.resolveTopicName(OrderEventType.ORDER_CREATED);
+
+// 4. 전송
+kafkaTemplate.send(topic, event);
+```
+
+### Consumer에서 이벤트 타입 파싱
+
+```java
+// 문자열에서 EventType 조회
+EventType eventType = EventTypes.from(kafkaEvent.getType());
+
+// 도메인별로 처리
+if (eventType instanceof OrderEventType orderEvent) {
+    switch(orderEvent) {
+        case ORDER_CREATED -> handleOrderCreated(payload);
+        // ...
+    }
+} else if (eventType instanceof DeliveryEventType deliveryEvent) {
+    switch(deliveryEvent) {
+        case DELIVERY_STARTED -> handleDeliveryStarted(payload);
+        // ...
+    }
+}
+```
+
+### TopicResolver 구현 예시
+
+```java
+@Component
+public class KafkaTopicResolver implements TopicResolver {
+    
+    @Value("${kafka.topics.order-main}")
+    private String orderMainTopic;
+    
+    @Value("${kafka.topics.order-payment}")
+    private String orderPaymentTopic;
+    
+    @Value("${kafka.topics.delivery-main}")
+    private String deliveryMainTopic;
+    
+    @Value("${kafka.topics.delivery-tracking}")
+    private String deliveryTrackingTopic;
+    
+    @Value("${kafka.topics.dispatch-main}")
+    private String dispatchMainTopic;
+    
+    @Override
+    public String resolveTopicName(TopicKey topicKey) {
+        return switch(topicKey) {
+            case ORDER_MAIN -> orderMainTopic;
+            case ORDER_PAYMENT -> orderPaymentTopic;
+            case DELIVERY_MAIN -> deliveryMainTopic;
+            case DELIVERY_TRACKING -> deliveryTrackingTopic;
+            case DISPATCH_MAIN -> dispatchMainTopic;
+        };
+    }
+    
+    // resolveTopicName(EventType)은 default 메서드로 자동 제공됨
+}
+```
+
+**장점**:
+- ✅ 1개 도메인에서 여러 토픽 지원 (order-main, order-payment 등)
+- ✅ 컴파일 타임에 모든 토픽 매핑 강제
+- ✅ IDE 자동완성 및 타입 안전
+- ✅ TopicKey enum에 새 토픽 추가 시 컴파일 에러로 누락 방지
+
+### application.yml 설정
+
+```yaml
+# Production
+kafka:
+  topics:
+    order-main: "order-event"
+    order-payment: "order-payment-event"
+    delivery-main: "delivery-event"
+    delivery-tracking: "delivery-tracking-event"
+    dispatch-main: "dispatch-event"
+
+# Development
+kafka:
+  topics:
+    order-main: "dev-order-event"
+    order-payment: "dev-order-payment-event"
+    delivery-main: "dev-delivery-event"
+    delivery-tracking: "dev-delivery-tracking-event"
+    dispatch-main: "dev-dispatch-event"
+
+# 기본값
+kafka:
+  topics:
+    order: order-event
+    dispatch: dispatch-event
+    delivery: delivery-event
+
+# dev 환경 (application-dev.yml)
+kafka:
+  topics:
+    order: dev-order-event
+    dispatch: dev-dispatch-event
+    delivery: dev-delivery-event
+
+# prod 환경 (application-prod.yml)
+kafka:
+  topics:
+    order: prod-order-event
+    dispatch: prod-dispatch-event
+    delivery: prod-delivery-event
 ```
 
 ## 스키마 변경 가이드
