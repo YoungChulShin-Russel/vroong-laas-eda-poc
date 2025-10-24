@@ -1,4 +1,4 @@
-package vroong.laas.readmodel.query.controller;
+package vroong.laas.readmodel.query.controller.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.common.DeliveryEventHandler;
 import vroong.laas.readmodel.projection.event.DeliveryEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.time.Instant;
 
@@ -19,15 +19,28 @@ public class DeliveryPickedUpHandler implements DeliveryEventHandler {
     }
 
     @Override
-    public OrderInfo handle(OrderInfo existingProjection, DeliveryEvent deliveryEvent) {
+    public OrderAggregate handle(OrderAggregate existingProjection, DeliveryEvent deliveryEvent) {
         log.debug("Handling delivery picked up event: deliveryId={}, agentId={}", 
                 deliveryEvent.getDeliveryId(), deliveryEvent.getAgentId());
         
         Instant now = Instant.now();
         
-        OrderInfo updatedProjection = existingProjection.toBuilder()
+        // 기존 DeliveryInfo 업데이트 (toBuilder 사용)
+        OrderAggregate.DeliveryInfo existingDeliveryInfo = existingProjection.getDeliveryInfo();
+        if (existingDeliveryInfo == null) {
+            log.warn("DeliveryInfo is null for picked up event: deliveryId={}", 
+                    deliveryEvent.getDeliveryId());
+            throw new IllegalStateException("DeliveryInfo must exist before picked up event");
+        }
+        
+        OrderAggregate.DeliveryInfo updatedDeliveryInfo = existingDeliveryInfo.toBuilder()
                 .deliveryStatus(deliveryEvent.getDeliveryStatus())
                 .deliveryPickedUpAt(deliveryEvent.getPickedUpAt())
+                .build();
+        
+        // OrderAggregate 업데이트
+        OrderAggregate updatedProjection = existingProjection.toBuilder()
+                .deliveryInfo(updatedDeliveryInfo)
                 .updatedAt(now)
                 .build();
         

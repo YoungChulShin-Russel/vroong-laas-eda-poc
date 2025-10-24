@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.common.OrderEventHandler;
 import vroong.laas.readmodel.projection.event.OrderEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,52 +21,47 @@ public class OrderCreatedHandler implements OrderEventHandler {
     }
 
     @Override
-    public OrderInfo handle(OrderEvent orderEvent) {
+    public OrderAggregate handle(OrderEvent orderEvent) {
         log.debug("Handling order created event: orderId={}", orderEvent.getOrderId());
         
         Instant now = Instant.now();
         
-        OrderInfo projection = OrderInfo.builder()
-                .orderId(orderEvent.getOrderId())
+        // OrderInfo 구성
+        OrderAggregate.OrderInfo orderInfo = OrderAggregate.OrderInfo.builder()
                 .orderNumber(orderEvent.getOrderNumber())
                 .orderStatus(orderEvent.getOrderStatus())
                 .originLocation(convertLocation(orderEvent.getOriginLocation()))
                 .destinationLocation(convertLocation(orderEvent.getDestinationLocation()))
                 .items(convertItems(orderEvent.getItems()))
                 .orderedAt(orderEvent.getOrderedAt())
-                
-                // 초기값 설정 (아직 배차/배송 정보 없음)
+                .build();
+        
+        // OrderAggregate 구성 (DispatchInfo, DeliveryInfo는 null)
+        OrderAggregate projection = OrderAggregate.builder()
+                .orderId(orderEvent.getOrderId())
                 .dispatchId(null)
-                .agentId(null)
-                .deliveryFee(null)
-                .dispatchedAt(null)
-                
                 .deliveryId(null)
-                .deliveryStatus(null)
-                .deliveryStartedAt(null)
-                .deliveryPickedUpAt(null)
-                .deliveryDeliveredAt(null)
-                .deliveryCancelledAt(null)
-                
-                // 메타데이터
+                .orderInfo(orderInfo)
+                .dispatchInfo(null)  // 아직 배차 정보 없음
+                .deliveryInfo(null)  // 아직 배송 정보 없음
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
         
         log.info("Created order projection: orderId={}, orderNumber={}", 
-                projection.getOrderId(), projection.getOrderNumber());
+                projection.getOrderId(), projection.getOrderInfo().getOrderNumber());
         
         return projection;
     }
     
-    private OrderInfo.OrderLocation convertLocation(
+    private OrderAggregate.OrderLocation convertLocation(
             vroong.laas.common.event.payload.order.OrderCreatedEventPayload.OrderCreatedOrderLocation location) {
         
         if (location == null) {
             return null;
         }
         
-        return OrderInfo.OrderLocation.builder()
+        return OrderAggregate.OrderLocation.builder()
                 .contactName(location.getContactName())
                 .contactPhoneNumber(location.getContactPhoneNumber())
                 .latitude(location.getLatitude())
@@ -77,7 +72,7 @@ public class OrderCreatedHandler implements OrderEventHandler {
                 .build();
     }
     
-    private List<OrderInfo.OrderItem> convertItems(
+    private List<OrderAggregate.OrderItem> convertItems(
             List<vroong.laas.common.event.payload.order.OrderCreatedEventPayload.OrderCreatedOrderItem> items) {
         
         if (items == null) {
@@ -85,7 +80,7 @@ public class OrderCreatedHandler implements OrderEventHandler {
         }
         
         return items.stream()
-                .map(item -> OrderInfo.OrderItem.builder()
+                .map(item -> OrderAggregate.OrderItem.builder()
                         .itemName(item.getItemName())
                         .quantity(item.getQuantity())
                         .price(item.getPrice())

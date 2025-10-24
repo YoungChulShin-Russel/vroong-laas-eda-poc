@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import vroong.laas.readmodel.projection.handler.common.DispatchEventHandler;
 import vroong.laas.readmodel.projection.event.DispatchEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class DispatchProjectionHandler {
 
     private final List<DispatchEventHandler> dispatchEventHandlers;
 
-    public OrderInfo updateDispatchInfo(OrderInfo existingProjection, DispatchEvent dispatchEvent) {
+    public OrderAggregate updateDispatchInfo(OrderAggregate existingProjection, DispatchEvent dispatchEvent) {
         log.debug("Finding handler for dispatch event type: {}", dispatchEvent.getKafkaEvent().getType());
         
         DispatchEventHandler handler = dispatchEventHandlers.stream()

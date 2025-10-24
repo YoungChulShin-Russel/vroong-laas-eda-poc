@@ -9,7 +9,7 @@ import vroong.laas.readmodel.projection.handler.OrderProjectionHandler;
 import vroong.laas.readmodel.projection.event.DeliveryEvent;
 import vroong.laas.readmodel.projection.event.DispatchEvent;
 import vroong.laas.readmodel.projection.event.OrderEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public class ProjectionOrchestrator {
         
         try {
             // 1. Order projection 처리 (생성/수정/취소 등)
-            OrderInfo projection = orderProjectionHandler.handleOrderEvent(orderEvent);
+            OrderAggregate projection = orderProjectionHandler.handleOrderEvent(orderEvent);
             
             // 2. Redis + MongoDB에 저장
             projectionService.saveOrderProjection(projection);
@@ -59,7 +59,7 @@ public class ProjectionOrchestrator {
         
         try {
             // 1. 기존 projection 조회
-            Optional<OrderInfo> existingProjection =
+            Optional<OrderAggregate> existingProjection =
                     projectionService.getOrderProjection(dispatchEvent.getOrderId());
             
             if (existingProjection.isEmpty()) {
@@ -69,7 +69,7 @@ public class ProjectionOrchestrator {
             }
             
             // 2. Dispatch 정보 업데이트
-            OrderInfo updatedProjection = dispatchProjectionHandler.updateDispatchInfo(
+            OrderAggregate updatedProjection = dispatchProjectionHandler.updateDispatchInfo(
                     existingProjection.get(), dispatchEvent);
             
             // 3. 저장
@@ -104,7 +104,7 @@ public class ProjectionOrchestrator {
             }
             
             // 2. 기존 projection 조회
-            Optional<OrderInfo> existingProjection = projectionService.getOrderProjection(orderId);
+            Optional<OrderAggregate> existingProjection = projectionService.getOrderProjection(orderId);
             
             if (existingProjection.isEmpty()) {
                 log.warn("Order projection not found for delivery event: orderId={}, deliveryId={}", 
@@ -113,7 +113,7 @@ public class ProjectionOrchestrator {
             }
             
             // 3. Delivery 상태 업데이트
-            OrderInfo updatedProjection = deliveryProjectionHandler.updateDeliveryStatus(
+            OrderAggregate updatedProjection = deliveryProjectionHandler.updateDeliveryStatus(
                     existingProjection.get(), deliveryEvent);
             
             // 4. 저장

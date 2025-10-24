@@ -5,13 +5,18 @@ import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * MongoDB Document for Order Projection
+ * 
+ * 구조: OrderAggregate의 nested 구조를 그대로 반영
+ */
 @Document(collection = "order_projections")
 @Getter
 @Builder
@@ -20,43 +25,72 @@ public class OrderDocument {
     @Id
     private final String id;
     
+    // Root Level IDs
     @Indexed
     private final Long orderId;
-    
-    @Indexed
-    private final String orderNumber;
-    
-    @Indexed
-    private final String orderStatus;
-    
-    private final OrderLocationDocument originLocation;
-    private final OrderLocationDocument destinationLocation;
-    private final List<OrderItemDocument> items;
-    
-    @Indexed
-    private final Instant orderedAt;
-    
     private final Long dispatchId;
-    @Indexed
-    private final Long agentId;
-    private final BigDecimal deliveryFee;
-    @Indexed
-    private final Instant dispatchedAt;
-    
     private final Long deliveryId;
-    @Indexed
-    private final String deliveryStatus;
-    @Indexed
-    private final Instant deliveryStartedAt;
-    @Indexed
-    private final Instant deliveryPickedUpAt;
-    @Indexed
-    private final Instant deliveryDeliveredAt;
     
+    // Nested: Order 정보
+    private final OrderInfoDocument orderInfo;
+    
+    // Nested: Dispatch 정보
+    private final DispatchInfoDocument dispatchInfo;
+    
+    // Nested: Delivery 정보
+    private final DeliveryInfoDocument deliveryInfo;
+    
+    // Projection 메타데이터
     @Indexed
     private final Instant createdAt;
     @Indexed
     private final Instant updatedAt;
+    
+    // ========================================
+    // Nested Document Classes
+    // ========================================
+    
+    @Getter
+    @Builder
+    public static class OrderInfoDocument {
+        @Indexed
+        private final String orderNumber;
+        @Indexed
+        private final String orderStatus;
+        private final OrderLocationDocument originLocation;
+        private final OrderLocationDocument destinationLocation;
+        private final List<OrderItemDocument> items;
+        @Indexed
+        private final Instant orderedAt;
+    }
+    
+    @Getter
+    @Builder
+    public static class DispatchInfoDocument {
+        @Indexed
+        private final Long agentId;
+        private final BigDecimal suggestedFee;
+        @Indexed
+        private final Instant dispatchedAt;
+    }
+    
+    @Getter
+    @Builder
+    public static class DeliveryInfoDocument {
+        private final String deliveryNumber;
+        @Indexed
+        private final Long agentId;
+        private final BigDecimal deliveryFee;
+        @Indexed
+        private final String deliveryStatus;
+        @Indexed
+        private final Instant deliveryStartedAt;
+        @Indexed
+        private final Instant deliveryPickedUpAt;
+        @Indexed
+        private final Instant deliveryDeliveredAt;
+        private final Instant deliveryCancelledAt;
+    }
     
     @Getter
     @Builder
@@ -78,104 +112,158 @@ public class OrderDocument {
         private final BigDecimal price;
     }
     
+    // ========================================
+    // Helper Methods
+    // ========================================
+    
     public static String generateId(Long orderId) {
         return "order_" + orderId;
     }
     
-    public static OrderDocument from(OrderInfo projection) {
+    /**
+     * OrderAggregate → OrderDocument 변환
+     */
+    public static OrderDocument from(OrderAggregate aggregate) {
         return OrderDocument.builder()
-                .id(generateId(projection.getOrderId()))
-                .orderId(projection.getOrderId())
-                .orderNumber(projection.getOrderNumber())
-                .orderStatus(projection.getOrderStatus())
-                .originLocation(projection.getOriginLocation() != null ?
-                    OrderLocationDocument.builder()
-                            .contactName(projection.getOriginLocation().getContactName())
-                            .contactPhoneNumber(projection.getOriginLocation().getContactPhoneNumber())
-                            .latitude(projection.getOriginLocation().getLatitude())
-                            .longitude(projection.getOriginLocation().getLongitude())
-                            .jibunAddress(projection.getOriginLocation().getJibunAddress())
-                            .roadAddress(projection.getOriginLocation().getRoadAddress())
-                            .detailAddress(projection.getOriginLocation().getDetailAddress())
-                            .build() : null)
-                .destinationLocation(projection.getDestinationLocation() != null ?
-                    OrderLocationDocument.builder()
-                            .contactName(projection.getDestinationLocation().getContactName())
-                            .contactPhoneNumber(projection.getDestinationLocation().getContactPhoneNumber())
-                            .latitude(projection.getDestinationLocation().getLatitude())
-                            .longitude(projection.getDestinationLocation().getLongitude())
-                            .jibunAddress(projection.getDestinationLocation().getJibunAddress())
-                            .roadAddress(projection.getDestinationLocation().getRoadAddress())
-                            .detailAddress(projection.getDestinationLocation().getDetailAddress())
-                            .build() : null)
-                .items(projection.getItems() != null ?
-                    projection.getItems().stream()
-                            .map(item -> OrderItemDocument.builder()
-                                    .itemName(item.getItemName())
-                                    .quantity(item.getQuantity())
-                                    .price(item.getPrice())
-                                    .build())
-                            .collect(Collectors.toList()) : null)
-                .orderedAt(projection.getOrderedAt())
-                .dispatchId(projection.getDispatchId())
-                .agentId(projection.getAgentId())
-                .deliveryFee(projection.getDeliveryFee())
-                .dispatchedAt(projection.getDispatchedAt())
-                .deliveryId(projection.getDeliveryId())
-                .deliveryStatus(projection.getDeliveryStatus())
-                .deliveryStartedAt(projection.getDeliveryStartedAt())
-                .deliveryPickedUpAt(projection.getDeliveryPickedUpAt())
-                .deliveryDeliveredAt(projection.getDeliveryDeliveredAt())
-                .createdAt(projection.getCreatedAt())
-                .updatedAt(projection.getUpdatedAt())
+                .id(generateId(aggregate.getOrderId()))
+                .orderId(aggregate.getOrderId())
+                .dispatchId(aggregate.getDispatchId())
+                .deliveryId(aggregate.getDeliveryId())
+                .orderInfo(aggregate.getOrderInfo() != null ? convertOrderInfo(aggregate.getOrderInfo()) : null)
+                .dispatchInfo(aggregate.getDispatchInfo() != null ? convertDispatchInfo(aggregate.getDispatchInfo()) : null)
+                .deliveryInfo(aggregate.getDeliveryInfo() != null ? convertDeliveryInfo(aggregate.getDeliveryInfo()) : null)
+                .createdAt(aggregate.getCreatedAt())
+                .updatedAt(aggregate.getUpdatedAt())
                 .build();
     }
     
-    public OrderInfo toProjection() {
-        return OrderInfo.builder()
-                .orderId(this.orderId)
-                .orderNumber(this.orderNumber)
-                .orderStatus(this.orderStatus)
-                .originLocation(this.originLocation != null ?
-                    OrderInfo.OrderLocation.builder()
-                            .contactName(this.originLocation.getContactName())
-                            .contactPhoneNumber(this.originLocation.getContactPhoneNumber())
-                            .latitude(this.originLocation.getLatitude())
-                            .longitude(this.originLocation.getLongitude())
-                            .jibunAddress(this.originLocation.getJibunAddress())
-                            .roadAddress(this.originLocation.getRoadAddress())
-                            .detailAddress(this.originLocation.getDetailAddress())
-                            .build() : null)
-                .destinationLocation(this.destinationLocation != null ?
-                    OrderInfo.OrderLocation.builder()
-                            .contactName(this.destinationLocation.getContactName())
-                            .contactPhoneNumber(this.destinationLocation.getContactPhoneNumber())
-                            .latitude(this.destinationLocation.getLatitude())
-                            .longitude(this.destinationLocation.getLongitude())
-                            .jibunAddress(this.destinationLocation.getJibunAddress())
-                            .roadAddress(this.destinationLocation.getRoadAddress())
-                            .detailAddress(this.destinationLocation.getDetailAddress())
-                            .build() : null)
-                .items(this.items != null ?
-                    this.items.stream()
-                            .map(item -> OrderInfo.OrderItem.builder()
-                                    .itemName(item.getItemName())
-                                    .quantity(item.getQuantity())
-                                    .price(item.getPrice())
-                                    .build())
+    private static OrderInfoDocument convertOrderInfo(OrderAggregate.OrderInfo orderInfo) {
+        return OrderInfoDocument.builder()
+                .orderNumber(orderInfo.getOrderNumber())
+                .orderStatus(orderInfo.getOrderStatus())
+                .originLocation(orderInfo.getOriginLocation() != null ? 
+                    convertLocation(orderInfo.getOriginLocation()) : null)
+                .destinationLocation(orderInfo.getDestinationLocation() != null ? 
+                    convertLocation(orderInfo.getDestinationLocation()) : null)
+                .items(orderInfo.getItems() != null ?
+                    orderInfo.getItems().stream()
+                            .map(OrderDocument::convertItem)
                             .collect(Collectors.toList()) : null)
-                .orderedAt(this.orderedAt)
+                .orderedAt(orderInfo.getOrderedAt())
+                .build();
+    }
+    
+    private static DispatchInfoDocument convertDispatchInfo(OrderAggregate.DispatchInfo dispatchInfo) {
+        return DispatchInfoDocument.builder()
+                .agentId(dispatchInfo.getAgentId())
+                .suggestedFee(dispatchInfo.getSuggestedFee())
+                .dispatchedAt(dispatchInfo.getDispatchedAt())
+                .build();
+    }
+    
+    private static DeliveryInfoDocument convertDeliveryInfo(OrderAggregate.DeliveryInfo deliveryInfo) {
+        return DeliveryInfoDocument.builder()
+                .deliveryNumber(deliveryInfo.getDeliveryNumber())
+                .agentId(deliveryInfo.getAgentId())
+                .deliveryFee(deliveryInfo.getDeliveryFee())
+                .deliveryStatus(deliveryInfo.getDeliveryStatus())
+                .deliveryStartedAt(deliveryInfo.getDeliveryStartedAt())
+                .deliveryPickedUpAt(deliveryInfo.getDeliveryPickedUpAt())
+                .deliveryDeliveredAt(deliveryInfo.getDeliveryDeliveredAt())
+                .deliveryCancelledAt(deliveryInfo.getDeliveryCancelledAt())
+                .build();
+    }
+    
+    private static OrderLocationDocument convertLocation(OrderAggregate.OrderLocation location) {
+        return OrderLocationDocument.builder()
+                .contactName(location.getContactName())
+                .contactPhoneNumber(location.getContactPhoneNumber())
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
+                .jibunAddress(location.getJibunAddress())
+                .roadAddress(location.getRoadAddress())
+                .detailAddress(location.getDetailAddress())
+                .build();
+    }
+    
+    private static OrderItemDocument convertItem(OrderAggregate.OrderItem item) {
+        return OrderItemDocument.builder()
+                .itemName(item.getItemName())
+                .quantity(item.getQuantity())
+                .price(item.getPrice())
+                .build();
+    }
+    
+    /**
+     * OrderDocument → OrderAggregate 변환
+     */
+    public OrderAggregate toAggregate() {
+        return OrderAggregate.builder()
+                .orderId(this.orderId)
                 .dispatchId(this.dispatchId)
-                .agentId(this.agentId)
-                .deliveryFee(this.deliveryFee)
-                .dispatchedAt(this.dispatchedAt)
                 .deliveryId(this.deliveryId)
-                .deliveryStatus(this.deliveryStatus)
-                .deliveryStartedAt(this.deliveryStartedAt)
-                .deliveryPickedUpAt(this.deliveryPickedUpAt)
-                .deliveryDeliveredAt(this.deliveryDeliveredAt)
+                .orderInfo(this.orderInfo != null ? convertToOrderInfo(this.orderInfo) : null)
+                .dispatchInfo(this.dispatchInfo != null ? convertToDispatchInfo(this.dispatchInfo) : null)
+                .deliveryInfo(this.deliveryInfo != null ? convertToDeliveryInfo(this.deliveryInfo) : null)
                 .createdAt(this.createdAt)
                 .updatedAt(this.updatedAt)
+                .build();
+    }
+    
+    private static OrderAggregate.OrderInfo convertToOrderInfo(OrderInfoDocument doc) {
+        return OrderAggregate.OrderInfo.builder()
+                .orderNumber(doc.getOrderNumber())
+                .orderStatus(doc.getOrderStatus())
+                .originLocation(doc.getOriginLocation() != null ? 
+                    convertToLocation(doc.getOriginLocation()) : null)
+                .destinationLocation(doc.getDestinationLocation() != null ? 
+                    convertToLocation(doc.getDestinationLocation()) : null)
+                .items(doc.getItems() != null ?
+                    doc.getItems().stream()
+                            .map(OrderDocument::convertToItem)
+                            .collect(Collectors.toList()) : null)
+                .orderedAt(doc.getOrderedAt())
+                .build();
+    }
+    
+    private static OrderAggregate.DispatchInfo convertToDispatchInfo(DispatchInfoDocument doc) {
+        return OrderAggregate.DispatchInfo.builder()
+                .agentId(doc.getAgentId())
+                .suggestedFee(doc.getSuggestedFee())
+                .dispatchedAt(doc.getDispatchedAt())
+                .build();
+    }
+    
+    private static OrderAggregate.DeliveryInfo convertToDeliveryInfo(DeliveryInfoDocument doc) {
+        return OrderAggregate.DeliveryInfo.builder()
+                .deliveryNumber(doc.getDeliveryNumber())
+                .agentId(doc.getAgentId())
+                .deliveryFee(doc.getDeliveryFee())
+                .deliveryStatus(doc.getDeliveryStatus())
+                .deliveryStartedAt(doc.getDeliveryStartedAt())
+                .deliveryPickedUpAt(doc.getDeliveryPickedUpAt())
+                .deliveryDeliveredAt(doc.getDeliveryDeliveredAt())
+                .deliveryCancelledAt(doc.getDeliveryCancelledAt())
+                .build();
+    }
+    
+    private static OrderAggregate.OrderLocation convertToLocation(OrderLocationDocument doc) {
+        return OrderAggregate.OrderLocation.builder()
+                .contactName(doc.getContactName())
+                .contactPhoneNumber(doc.getContactPhoneNumber())
+                .latitude(doc.getLatitude())
+                .longitude(doc.getLongitude())
+                .jibunAddress(doc.getJibunAddress())
+                .roadAddress(doc.getRoadAddress())
+                .detailAddress(doc.getDetailAddress())
+                .build();
+    }
+    
+    private static OrderAggregate.OrderItem convertToItem(OrderItemDocument doc) {
+        return OrderAggregate.OrderItem.builder()
+                .itemName(doc.getItemName())
+                .quantity(doc.getQuantity())
+                .price(doc.getPrice())
                 .build();
     }
 }

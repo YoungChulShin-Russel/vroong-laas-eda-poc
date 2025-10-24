@@ -12,9 +12,10 @@ import vroong.laas.readmodel.query.client.dto.DeliveryServiceResponse;
 import vroong.laas.readmodel.query.client.dto.DispatchServiceResponse;
 import vroong.laas.readmodel.query.client.dto.OrderServiceResponse;
 import vroong.laas.readmodel.common.exception.OrderNotFoundException;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 import vroong.laas.readmodel.common.repository.mongo.OrderProjectionMongoRepository;
 import vroong.laas.readmodel.common.repository.redis.OrderProjectionRedisRepository;
+import vroong.laas.readmodel.query.controller.response.OrderResponse;
 
 import java.time.Instant;
 
@@ -39,7 +40,18 @@ public class OrderQueryService {
     private boolean fallbackEnabled;
     
     /**
-     * Order Projection 조회 (Reactive)
+     * Order 조회 (API Response용)
+     * 
+     * @param orderId Order ID
+     * @return Mono<OrderResponse>
+     */
+    public Mono<OrderResponse> getOrder(Long orderId) {
+        return getOrderAggregate(orderId)
+                .map(OrderResponse::fromOrderAggregate);
+    }
+    
+    /**
+     * OrderAggregate 조회 (Internal)
      * 
      * 순서:
      * 1. Redis 캐시 조회
@@ -47,14 +59,14 @@ public class OrderQueryService {
      * 3. Write Service 조회 (Fallback)
      * 
      * @param orderId Order ID
-     * @return Mono<OrderProjection>
+     * @return Mono<OrderAggregate>
      */
-    public Mono<OrderInfo> getOrderProjection(Long orderId) {
+    private Mono<OrderAggregate> getOrderAggregate(Long orderId) {
         log.debug("Querying Order Projection: orderId={}", orderId);
         
         // 1. Redis 캐시 조회
         return redisRepository.findByOrderId(orderId)
-                .doOnNext(projection -> log.debug("Cache HIT (Redis): orderId={}", orderId))
+                .doOnNext(__ -> log.debug("Cache HIT (Redis): orderId={}", orderId))
                 // 2. MongoDB 조회 (Redis Miss)
                 .switchIfEmpty(Mono.defer(() -> {
                     log.debug("Cache MISS (Redis), trying MongoDB: orderId={}", orderId);
@@ -88,7 +100,7 @@ public class OrderQueryService {
      * @param orderId Order ID
      * @return Mono<OrderProjection>
      */
-    private Mono<OrderInfo> fallbackToWriteService(Long orderId) {
+    private Mono<OrderAggregate> fallbackToWriteService(Long orderId) {
         log.info("Fallback to Write Services (Order + Dispatch + Delivery): orderId={}", orderId);
         
         // 세 서비스를 병렬로 호출
@@ -113,7 +125,7 @@ public class OrderQueryService {
                         deliveryMono.defaultIfEmpty(null)
                     )
                     .map(tuple -> {
-                        OrderInfo projection = convertFromServiceResponses(
+                        OrderAggregate projection = convertFromServiceResponses(
                             tuple.getT1(),  // Order
                             tuple.getT2(),  // Dispatch (nullable)
                             tuple.getT3()   // Delivery (nullable)
@@ -131,46 +143,63 @@ public class OrderQueryService {
     }
     
     /**
-     * Order + Dispatch + Delivery Service Response → OrderProjection 변환
+     * Order + Dispatch + Delivery Service Response → OrderAggregate 변환
      * 
      * @param orderData Order Service 응답 (필수)
      * @param dispatchData Dispatch Service 응답 (옵셔널)
      * @param deliveryData Delivery Service 응답 (옵셔널)
-     * @return OrderProjection
+     * @return OrderAggregate
      */
-    private OrderInfo convertFromServiceResponses(
+    private OrderAggregate convertFromServiceResponses(
             OrderServiceResponse.OrderServiceData orderData,
             DispatchServiceResponse.DispatchServiceData dispatchData,
             DeliveryServiceResponse.DeliveryServiceData deliveryData) {
         
-        OrderInfo.OrderInfoBuilder builder = OrderInfo.builder()
-                .orderId(orderData.getOrderId())
+        // Order 정보 구성 (필수)
+        OrderAggregate.OrderInfo orderInfo = OrderAggregate.OrderInfo.builder()
                 .orderNumber(orderData.getOrderNumber())
                 .orderStatus("ACTIVE") // 기본값
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now());
+                .orderedAt(Instant.now())
+                // TODO: originLocation, destinationLocation, items는 orderData에서 가져와야 함
+                .build();
         
-        // Dispatch 정보 추가
+        // Dispatch 정보 구성 (옵셔널)
+        OrderAggregate.DispatchInfo dispatchInfo = null;
         if (dispatchData != null) {
-            builder
-                .dispatchId(dispatchData.getDispatchId())
-                .agentId(dispatchData.getAgentId())
-                .deliveryFee(dispatchData.getDeliveryFee())
-                .dispatchedAt(dispatchData.getDispatchedAt());
+            dispatchInfo = OrderAggregate.DispatchInfo.builder()
+                    .agentId(dispatchData.getAgentId())
+                    .suggestedFee(dispatchData.getDeliveryFee())
+                    .requestedAt(null)  // TODO: dispatchData에서 가져와야 함
+                    .dispatchedAt(dispatchData.getDispatchedAt())
+                    .build();
         }
         
-        // Delivery 정보 추가
+        // Delivery 정보 구성 (옵셔널)
+        OrderAggregate.DeliveryInfo deliveryInfo = null;
         if (deliveryData != null) {
-            builder
-                .deliveryId(deliveryData.getDeliveryId())
-                .deliveryStatus(deliveryData.getDeliveryStatus())
-                .deliveryStartedAt(deliveryData.getDeliveryStartedAt())
-                .deliveryPickedUpAt(deliveryData.getDeliveryPickedUpAt())
-                .deliveryDeliveredAt(deliveryData.getDeliveryDeliveredAt())
-                .deliveryCancelledAt(deliveryData.getDeliveryCancelledAt());
+            deliveryInfo = OrderAggregate.DeliveryInfo.builder()
+                    .deliveryNumber(null)  // TODO: deliveryData에서 가져와야 함
+                    .agentId(null)  // TODO: deliveryData에 agentId 추가 필요
+                    .deliveryFee(null)  // TODO: deliveryData에서 가져와야 함
+                    .deliveryStatus(deliveryData.getDeliveryStatus())
+                    .deliveryStartedAt(deliveryData.getDeliveryStartedAt())
+                    .deliveryPickedUpAt(deliveryData.getDeliveryPickedUpAt())
+                    .deliveryDeliveredAt(deliveryData.getDeliveryDeliveredAt())
+                    .deliveryCancelledAt(deliveryData.getDeliveryCancelledAt())
+                    .build();
         }
         
-        return builder.build();
+        // Aggregate 조립
+        return OrderAggregate.builder()
+                .orderId(orderData.getOrderId())
+                .dispatchId(dispatchData != null ? dispatchData.getDispatchId() : null)
+                .deliveryId(deliveryData != null ? deliveryData.getDeliveryId() : null)
+                .orderInfo(orderInfo)
+                .dispatchInfo(dispatchInfo)
+                .deliveryInfo(deliveryInfo)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
     }
     
     /**
@@ -178,23 +207,22 @@ public class OrderQueryService {
      * 
      * 목적: 다음 조회 시 Fallback을 거치지 않도록
      */
-    private Mono<Void> saveFallbackData(OrderInfo projection) {
+    private Mono<Void> saveFallbackData(OrderAggregate projection) {
         return mongoRepository.save(projection)
-                .doOnSuccess(saved -> log.debug("Saved fallback data to MongoDB: orderId={}", projection.getOrderId()))
-                .doOnError(e -> log.warn("Failed to save fallback data: orderId={}, error={}", 
-                        projection.getOrderId(), e.getMessage()))
-                .onErrorResume(e -> Mono.empty())  // 저장 실패는 무시
+                .doOnSuccess(__ -> log.debug("Saved fallback data to MongoDB: orderId={}", projection.getOrderId()))
+                .doOnError(__ -> log.warn("Failed to save fallback data: orderId={}", projection.getOrderId()))
+                .onErrorResume(__ -> Mono.empty())  // 저장 실패는 무시
                 .then();
     }
     
     /**
      * MongoDB 결과를 Redis에 캐싱 (Fire and Forget)
      */
-    private void cacheToRedis(Long orderId, OrderInfo projection) {
+    private void cacheToRedis(Long orderId, OrderAggregate projection) {
         redisRepository.save(projection)
-                .doOnSuccess(saved -> log.debug("Cached to Redis: orderId={}", orderId))
-                .doOnError(e -> log.warn("Failed to cache to Redis: orderId={}, error={}", orderId, e.getMessage()))
-                .onErrorResume(e -> Mono.empty())  // 캐싱 실패는 무시
+                .doOnSuccess(__ -> log.debug("Cached to Redis: orderId={}", orderId))
+                .doOnError(__ -> log.warn("Failed to cache to Redis: orderId={}", orderId))
+                .onErrorResume(__ -> Mono.empty())  // 캐싱 실패는 무시
                 .subscribe();  // Fire and forget
     }
 }

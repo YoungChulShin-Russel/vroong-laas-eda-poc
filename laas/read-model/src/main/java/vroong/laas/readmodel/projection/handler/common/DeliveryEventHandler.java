@@ -2,11 +2,11 @@ package vroong.laas.readmodel.projection.handler.common;
 
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.event.DeliveryEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 public interface DeliveryEventHandler {
     
     boolean supports(KafkaEventType eventType);
     
-    OrderInfo handle(OrderInfo existingProjection, DeliveryEvent deliveryEvent);
+    OrderAggregate handle(OrderAggregate existingProjection, DeliveryEvent deliveryEvent);
 }

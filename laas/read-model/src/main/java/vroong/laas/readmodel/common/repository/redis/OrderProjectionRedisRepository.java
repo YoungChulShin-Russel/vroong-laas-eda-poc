@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.time.Duration;
 
@@ -23,7 +23,7 @@ public class OrderProjectionRedisRepository {
     /**
      * Redis에 OrderProjection 저장 (Reactive)
      */
-    public Mono<OrderInfo> save(OrderInfo projection) {
+    public Mono<OrderAggregate> save(OrderAggregate projection) {
         String key = OrderRedisModel.generateKey(projection.getOrderId());
         OrderRedisModel redisModel = OrderRedisModel.from(projection);
         
@@ -39,13 +39,13 @@ public class OrderProjectionRedisRepository {
     /**
      * Redis에서 OrderProjection 조회 (Reactive)
      */
-    public Mono<OrderInfo> findByOrderId(Long orderId) {
+    public Mono<OrderAggregate> findByOrderId(Long orderId) {
         String key = OrderRedisModel.generateKey(orderId);
         
         return reactiveRedisTemplate.opsForValue()
                 .get(key)
                 .cast(OrderRedisModel.class)
-                .map(OrderRedisModel::toProjection)
+                .map(OrderRedisModel::toAggregate)
                 .doOnNext(projection -> log.debug("Found order projection in Redis: orderId={}", orderId))
                 .doOnError(e -> log.error("Failed to find order projection in Redis: orderId={}, error={}", 
                         orderId, e.getMessage()))

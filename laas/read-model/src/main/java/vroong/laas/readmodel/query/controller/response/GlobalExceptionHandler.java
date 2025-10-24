@@ -1,4 +1,4 @@
-package vroong.laas.readmodel.query.controller;
+package vroong.laas.readmodel.query.controller.response;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

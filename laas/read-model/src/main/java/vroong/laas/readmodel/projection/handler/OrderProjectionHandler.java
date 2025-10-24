@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import vroong.laas.readmodel.projection.handler.common.OrderEventHandler;
 import vroong.laas.readmodel.projection.event.OrderEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class OrderProjectionHandler {
 
     private final List<OrderEventHandler> orderEventHandlers;
 
-    public OrderInfo handleOrderEvent(OrderEvent orderEvent) {
+    public OrderAggregate handleOrderEvent(OrderEvent orderEvent) {
         log.debug("Finding handler for order event type: {}", orderEvent.getKafkaEvent().getType());
         
         OrderEventHandler handler = orderEventHandlers.stream()

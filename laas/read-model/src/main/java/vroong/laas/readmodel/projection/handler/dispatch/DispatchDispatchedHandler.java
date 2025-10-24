@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.common.DispatchEventHandler;
 import vroong.laas.readmodel.projection.event.DispatchEvent;
-import vroong.laas.readmodel.common.model.OrderInfo;
+import vroong.laas.readmodel.common.model.OrderAggregate;
 
 import java.time.Instant;
 
@@ -19,7 +19,7 @@ public class DispatchDispatchedHandler implements DispatchEventHandler {
     }
 
     @Override
-    public OrderInfo handle(OrderInfo existingProjection, DispatchEvent dispatchEvent) {
+    public OrderAggregate handle(OrderAggregate existingProjection, DispatchEvent dispatchEvent) {
         log.debug("Handling dispatch dispatched event: dispatchId={}, orderId={}, agentId={}", 
                 dispatchEvent.getDispatchId(), dispatchEvent.getOrderId(), dispatchEvent.getAgentId());
         
@@ -31,19 +31,25 @@ public class DispatchDispatchedHandler implements DispatchEventHandler {
         
         Instant now = Instant.now();
         
-        OrderInfo updatedProjection = existingProjection.toBuilder()
-                .dispatchId(dispatchEvent.getDispatchId())
+        // DispatchInfo 구성
+        OrderAggregate.DispatchInfo dispatchInfo = OrderAggregate.DispatchInfo.builder()
                 .agentId(dispatchEvent.getAgentId())
-                .deliveryFee(dispatchEvent.getDeliveryFee())
+                .suggestedFee(dispatchEvent.getDeliveryFee())
                 .dispatchedAt(dispatchEvent.getDispatchedAt())
+                .build();
+        
+        // OrderAggregate 업데이트
+        OrderAggregate updatedProjection = existingProjection.toBuilder()
+                .dispatchId(dispatchEvent.getDispatchId())
+                .dispatchInfo(dispatchInfo)
                 .updatedAt(now)
                 .build();
         
-        log.info("Updated dispatch projection: orderId={}, dispatchId={}, agentId={}, deliveryFee={}", 
+        log.info("Updated dispatch projection: orderId={}, dispatchId={}, agentId={}, suggestedFee={}", 
                 updatedProjection.getOrderId(), 
                 updatedProjection.getDispatchId(),
-                updatedProjection.getAgentId(),
-                updatedProjection.getDeliveryFee());
+                updatedProjection.getDispatchInfo().getAgentId(),
+                updatedProjection.getDispatchInfo().getSuggestedFee());
         
         return updatedProjection;
     }
