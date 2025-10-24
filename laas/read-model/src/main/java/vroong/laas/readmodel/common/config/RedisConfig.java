@@ -1,8 +1,6 @@
 package vroong.laas.readmodel.common.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,11 +9,16 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Reactive Redis Configuration
@@ -42,21 +45,27 @@ public class RedisConfig {
     }
 
     @Bean
-    public ObjectMapper redisObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        // Java 8 date/time 지원
-        objectMapper.registerModule(new JavaTimeModule());
-        // Timestamp 대신 ISO-8601 형식으로 직렬화
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return objectMapper;
+    public JsonMapper redisJsonMapper() {
+        return JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .changeDefaultPropertyInclusion(
+                incl -> {
+                    incl.withContentInclusion(JsonInclude.Include.NON_NULL);
+                    incl.withValueInclusion(JsonInclude.Include.NON_NULL);
+                    return incl;
+                })
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
     }
 
     @Bean
     public ReactiveRedisTemplate<String, Object> reactiveRedisTemplate(
             ReactiveRedisConnectionFactory connectionFactory) {
-        
-        Jackson2JsonRedisSerializer<Object> serializer = 
-                new Jackson2JsonRedisSerializer<>(redisObjectMapper(), Object.class);
+
+        JacksonJsonRedisSerializer<Object> serializer =
+                new JacksonJsonRedisSerializer<>(redisJsonMapper(), Object.class);
         
         RedisSerializationContext<String, Object> context = RedisSerializationContext
                 .<String, Object>newSerializationContext(new StringRedisSerializer())

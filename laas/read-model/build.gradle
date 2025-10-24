@@ -20,15 +20,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
     
     // JSON Processing
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'tools.jackson.core:jackson-databind'
     
     // Common Event Module
     implementation project(':common:event')
     
     // Test
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
-    testImplementation 'org.testcontainers:kafka'
-    testImplementation 'org.testcontainers:mongodb'
-    testImplementation 'org.testcontainers:junit-jupiter'
+//    testImplementation 'org.springframework.kafka:spring-kafka-test'
+//    testImplementation 'org.testcontainers:kafka'
+//    testImplementation 'org.testcontainers:mongodb'
+//    testImplementation 'org.testcontainers:junit-jupiter'
 }
