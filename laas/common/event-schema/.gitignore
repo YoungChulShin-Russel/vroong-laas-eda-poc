@@ -1,0 +1,16 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Generated Avro sources
+/build/generated-main-avro-java/
+/build/generated-test-avro-java/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.sw?
+.DS_Store
+

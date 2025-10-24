@@ -1,0 +1,82 @@
+plugins {
+    id 'java-library'
+    id 'com.github.davidmc24.gradle.plugin.avro' version '1.9.1'
+}
+
+group = 'vroong.laas.common'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    // Avro 의존성
+    api 'org.apache.avro:avro:1.11.3'
+    
+    // AWS Glue Schema Registry
+    api 'software.amazon.glue:schema-registry-serde:1.1.18'
+    api 'software.amazon.glue:schema-registry-kafkaconnect-converter:1.1.18'
+    
+    // AWS SDK v2
+    api platform('software.amazon.awssdk:bom:2.20.0')
+    api 'software.amazon.awssdk:glue'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Test
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Avro 설정
+avro {
+    createSetters = true
+    fieldVisibility = "PRIVATE"
+    outputCharacterEncoding = "UTF-8"
+    stringType = "String"
+    enableDecimalLogicalType = true
+}
+
+// Avro 코드 생성 설정
+generateAvroJava {
+    source = file("src/main/avro")
+}
+
+// 생성된 Avro 클래스를 소스셋에 추가
+sourceSets {
+    main {
+        java {
+            srcDir 'build/generated-main-avro-java'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Schema Registry 등록 태스크 (나중에 사용)
+task registerSchemas {
+    group = 'schema'
+    description = 'Register all schemas to AWS Glue Schema Registry'
+    doLast {
+        println "Registering schemas to AWS Glue Schema Registry..."
+        println "This will be implemented when migrating to multi-repo"
+    }
+}
+
+// 스키마 호환성 체크 태스크 (나중에 사용)
+task checkSchemaCompatibility {
+    group = 'schema'
+    description = 'Check schema compatibility with existing versions'
+    doLast {
+        println "Checking schema compatibility..."
+        println "This will be implemented when migrating to multi-repo"
+    }
+}
+
