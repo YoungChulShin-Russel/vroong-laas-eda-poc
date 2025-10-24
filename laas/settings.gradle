@@ -2,7 +2,7 @@ rootProject.name = 'laas'
 
 include 'common'
 include 'common:event'
-
+include 'common:event-schema'
 
 include 'delivery'
 include 'delivery:api'
