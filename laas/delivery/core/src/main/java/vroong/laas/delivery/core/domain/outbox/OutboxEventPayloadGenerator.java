@@ -21,9 +21,9 @@ public class OutboxEventPayloadGenerator {
 
   public String generate(OutboxEventType eventType, Delivery delivery, DeliveryHistory history) {
     return switch (eventType) {
-      case DELIVERY_STARTED -> generateDeliveryStartedPayload(delivery);
-      case DELIVERY_PICKED_UP -> generateDeliveryPickedUpPayload(delivery);
-      case DELIVERY_DELIVERED -> generateDeliveryDeliveredPayload(delivery);
+      case DELIVERY_STARTED -> generateDeliveryStartedPayload(delivery, history);
+      case DELIVERY_PICKED_UP -> generateDeliveryPickedUpPayload(delivery, history);
+      case DELIVERY_DELIVERED -> generateDeliveryDeliveredPayload(delivery, history);
       case DELIVERY_CANCELLED -> generateDeliveryCancelledPayload(delivery, history);
     };
 
@@ -48,6 +48,7 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryPickedUpPayload(Delivery delivery, DeliveryHistory history) {
     var payload = DeliveryPickedUpEventPayload.builder()
         .deliveryId(delivery.getId())
+        .orderId(delivery.getOrderId())
         .deliveryStatus(delivery.getStatus().name())
         .pickedUpAt(history.getRegisteredAt())
         .build();
@@ -60,6 +61,7 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryDeliveredPayload(Delivery delivery, DeliveryHistory history) {
     var payload = DeliveryDeliveredEventPayload.builder()
         .deliveryId(delivery.getId())
+        .orderId(delivery.getOrderId())
         .deliveryStatus(delivery.getStatus().name())
         .deliveredAt(history.getRegisteredAt())
         .build();
@@ -72,6 +74,7 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryCancelledPayload(Delivery delivery, DeliveryHistory history) {
     var payload = DeliveryCancelledEventPayload.builder()
         .deliveryId(delivery.getId())
+        .orderId(delivery.getOrderId())
         .deliveryStatus(delivery.getStatus().name())
         .reason(history.getReason())
         .cancelledAt(history.getRegisteredAt())

@@ -13,6 +13,7 @@ import vroong.laas.common.event.SchemaVersion;
 public class DeliveryCancelledEventPayload implements KafkaEventPayload {
 
   private Long deliveryId;
+  private Long orderId;
   private String deliveryStatus;
   private String reason;
   private Instant cancelledAt;
