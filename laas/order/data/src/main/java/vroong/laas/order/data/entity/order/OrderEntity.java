@@ -52,5 +52,12 @@ public class OrderEntity extends ConcurrentEntity {
     this.deliveredAt = deliveredAt;
     this.cancelledAt = cancelledAt;
   }
+
+  public void cancel() {
+    this.status = OrderStatus.CANCELLED;
+    this.cancelledAt = Instant.now();
+  }
+
+
 }
 

@@ -7,6 +7,7 @@ import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
 import vroong.laas.common.event.KafkaEventSource;
 import vroong.laas.common.event.KafkaEventType;
+import vroong.laas.common.event.payload.order.OrderCancelledEventPayload;
 import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
 import vroong.laas.common.event.payload.order.OrderDestinationChangedEventPayload;
 import vroong.laas.common.event.payload.order.OrderItemEventDto;
@@ -86,6 +87,20 @@ public class OutboxEventPayloadGenerator {
 
     KafkaEvent<KafkaEventPayload> kafkaEvent = KafkaEvent.of(
         KafkaEventType.ORDER_ORDER_DESTINATION_CHANGED,
+        KafkaEventSource.ORDER,
+        payload);
+
+    return kafkaEvent.toJson();
+  }
+
+  public String generateOrderCancelledPayload(Long orderId, Instant cancelledAt) {
+    OrderCancelledEventPayload payload = OrderCancelledEventPayload.builder()
+        .orderId(orderId)
+        .cancelledAt(cancelledAt)
+        .build();
+
+    KafkaEvent<KafkaEventPayload> kafkaEvent = KafkaEvent.of(
+        KafkaEventType.ORDER_ORDER_CANCELLED,
         KafkaEventSource.ORDER,
         payload);
 

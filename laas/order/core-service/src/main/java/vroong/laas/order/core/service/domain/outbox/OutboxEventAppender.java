@@ -22,13 +22,7 @@ public class OutboxEventAppender {
   public void appendOrderCreated(Order order) {
     String payload = payloadGenerator.generateOrderCreatedPayload(order);
 
-    OutboxEventEntity outboxEventEntity = OutboxEventEntity.builder()
-        .eventToken(UUID.randomUUID().toString())
-        .entityKey(order.getId().toString())
-        .payload(payload)
-        .status(OutboxEventStatus.REGISTERED)
-        .registeredAt(Instant.now())
-        .build();
+    OutboxEventEntity outboxEventEntity = getOutboxEventEntity(order.getId(), payload);
 
     outboxEventRepository.save(outboxEventEntity);
   }
@@ -37,15 +31,30 @@ public class OutboxEventAppender {
   public void appendOrderDestinationChanged(Long orderId, Destination destination) {
     String payload = payloadGenerator.generateOrderDestinationChangedPayload(orderId, destination);
 
-    OutboxEventEntity outboxEventEntity = OutboxEventEntity.builder()
+    OutboxEventEntity outboxEventEntity = getOutboxEventEntity(orderId, payload);
+
+    outboxEventRepository.save(outboxEventEntity);
+  }
+
+  @Transactional
+  public void appendOrderCancelled(Long orderId, Instant cancelledAt) {
+    String payload = payloadGenerator.generateOrderCancelledPayload(orderId, cancelledAt);
+
+    OutboxEventEntity outboxEventEntity = getOutboxEventEntity(orderId, payload);
+
+    outboxEventRepository.save(outboxEventEntity);
+  }
+
+
+
+  private OutboxEventEntity getOutboxEventEntity(Long orderId, String payload) {
+    return OutboxEventEntity.builder()
         .eventToken(UUID.randomUUID().toString())
         .entityKey(orderId.toString())
         .payload(payload)
         .status(OutboxEventStatus.REGISTERED)
         .registeredAt(Instant.now())
         .build();
-
-    outboxEventRepository.save(outboxEventEntity);
   }
 
 }
