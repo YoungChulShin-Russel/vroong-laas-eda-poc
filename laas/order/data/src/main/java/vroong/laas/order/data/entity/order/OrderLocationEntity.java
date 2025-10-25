@@ -96,5 +96,23 @@ public class OrderLocationEntity extends BaseEntity {
     this.destinationRoadAddress = destinationRoadAddress;
     this.destinationDetailAddress = destinationDetailAddress;
   }
+
+  public void updateDestination(
+      String destinationContactName,
+      String destinationContactPhoneNumber,
+      BigDecimal destinationLatitude,
+      BigDecimal destinationLongitude,
+      String destinationJibnunAddress,
+      String destinationRoadAddress,
+      String destinationDetailAddress
+  ) {
+    this.destinationContactName = destinationContactName;
+    this.destinationContactPhoneNumber = destinationContactPhoneNumber;
+    this.destinationLatitude = destinationLatitude;
+    this.destinationLongitude = destinationLongitude;
+    this.destinationJibnunAddress = destinationJibnunAddress;
+    this.destinationRoadAddress = destinationRoadAddress;
+    this.destinationDetailAddress = destinationDetailAddress;
+  }
 }
 

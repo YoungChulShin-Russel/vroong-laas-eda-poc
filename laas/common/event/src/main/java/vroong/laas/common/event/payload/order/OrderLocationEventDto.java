@@ -1,4 +1,4 @@
-package vroong.laas.common.event.payload.dispatch;
+package vroong.laas.common.event.payload.order;
 
 import java.math.BigDecimal;
 import lombok.Builder;

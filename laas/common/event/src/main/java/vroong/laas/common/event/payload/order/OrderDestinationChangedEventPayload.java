@@ -1,7 +1,6 @@
 package vroong.laas.common.event.payload.order;
 
 import java.time.Instant;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.jackson.Jacksonized;
@@ -11,15 +10,11 @@ import vroong.laas.common.event.SchemaVersion;
 @Builder
 @Jacksonized
 @Getter
-public class OrderCreatedEventPayload implements KafkaEventPayload {
+public class OrderDestinationChangedEventPayload implements KafkaEventPayload {
 
   private final Long orderId;
-  private final String orderNumber;
-  private final String orderStatus;
-  private final OrderLocationEventDto originLocation;
   private final OrderLocationEventDto destinationLocation;
-  private final List<OrderItemEventDto> items;
-  private final Instant orderedAt;
+  private final Instant changedAt;
 
   @Override
   public SchemaVersion getSchemaVersion() {

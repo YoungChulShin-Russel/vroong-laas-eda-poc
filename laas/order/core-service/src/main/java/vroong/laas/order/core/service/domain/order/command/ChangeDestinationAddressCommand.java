@@ -1,0 +1,10 @@
+package vroong.laas.order.core.service.domain.order.command;
+
+import vroong.laas.order.core.service.domain.order.Destination;
+
+public record ChangeDestinationAddressCommand(
+    Long orderId,
+    Destination newDestination
+) {
+
+}
