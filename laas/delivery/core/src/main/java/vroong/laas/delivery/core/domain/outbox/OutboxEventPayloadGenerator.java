@@ -29,8 +29,10 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryStartedPayload(Delivery delivery) {
     var payload = DeliveryStartedEventPayload.builder()
         .deliveryId(delivery.getId())
+        .deliveryNumber(delivery.getDeliveryNumber().value())
         .orderId(delivery.getOrderId())
         .agentId(delivery.getAgentId())
+        .deliveryFee(delivery.getDeliveryFee())
         .deliveryStatus(delivery.getStatus().name())
         .startedAt(delivery.getCreatedAt())
         .build();
@@ -43,8 +45,6 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryPickedUpPayload(Delivery delivery) {
     var payload = DeliveryPickedUpEventPayload.builder()
         .deliveryId(delivery.getId())
-        .orderId(delivery.getOrderId())
-        .agentId(delivery.getAgentId())
         .deliveryStatus(delivery.getStatus().name())
         .pickedUpAt(delivery.getCreatedAt())
         .build();
@@ -57,8 +57,6 @@ public class OutboxEventPayloadGenerator {
   private String generateDeliveryDeliveredPayload(Delivery delivery) {
     var payload = DeliveryDeliveredEventPayload.builder()
         .deliveryId(delivery.getId())
-        .orderId(delivery.getOrderId())
-        .agentId(delivery.getAgentId())
         .deliveryStatus(delivery.getStatus().name())
         .deliveredAt(delivery.getCreatedAt())
         .build();

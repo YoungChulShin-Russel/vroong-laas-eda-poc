@@ -13,8 +13,6 @@ import vroong.laas.common.event.SchemaVersion;
 public class DeliveryPickedUpEventPayload implements KafkaEventPayload {
 
   private Long deliveryId;
-  private Long orderId;
-  private Long agentId;
   private String deliveryStatus;
   private Instant pickedUpAt;
 

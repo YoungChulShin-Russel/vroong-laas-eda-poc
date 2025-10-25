@@ -5,6 +5,7 @@ import vroong.laas.common.event.payload.delivery.DeliveryDeliveredEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryPickedUpEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryStartedEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
+import vroong.laas.common.event.payload.dispatch.DispatchRequestedEventPayload;
 import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
 
 @Getter
@@ -14,6 +15,11 @@ public enum KafkaEventType {
       "order.order.created",
       KafkaEventTopic.ORDER_EVENT,
       OrderCreatedEventPayload.class),
+
+  DISPATCH_DISPATCH_REQUESTED(
+      "dispatch.dispatch.requested",
+      KafkaEventTopic.DISPATCH_EVENT,
+      DispatchRequestedEventPayload.class),
 
   DISPATCH_DISPATCH_DISPATCHED(
       "dispatch.dispatch.dispatched",

@@ -1,4 +1,4 @@
-package vroong.laas.common.event.payload.delivery;
+package vroong.laas.common.event.payload.dispatch;
 
 import java.time.Instant;
 import lombok.Builder;
@@ -10,11 +10,11 @@ import vroong.laas.common.event.SchemaVersion;
 @Builder
 @Jacksonized
 @Getter
-public class DeliveryDeliveredEventPayload implements KafkaEventPayload {
+public class DispatchRequestedEventPayload implements KafkaEventPayload {
 
-  private Long deliveryId;
-  private String deliveryStatus;
-  private Instant deliveredAt;
+  private final Long dispatchId;
+  private final Long orderId;
+  private final Instant requestedAt;
 
   @Override
   public SchemaVersion getSchemaVersion() {
