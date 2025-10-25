@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vroong.laas.order.core.enums.outbox.OutboxEventStatus;
-import vroong.laas.order.core.enums.outbox.OutboxEventType;
 import vroong.laas.order.core.service.domain.order.Destination;
 import vroong.laas.order.core.service.domain.order.Order;
 import vroong.laas.order.data.entity.outbox.OutboxEventEntity;

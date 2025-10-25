@@ -5,17 +5,20 @@ import vroong.laas.order.core.service.common.annotation.Facade;
 import vroong.laas.order.core.service.domain.order.Destination;
 import vroong.laas.order.core.service.domain.order.Order;
 import vroong.laas.order.core.service.domain.order.Origin;
+import vroong.laas.order.core.service.domain.order.command.ChangeDestinationCommand;
 import vroong.laas.order.core.service.domain.order.command.CreateOrderCommand;
 import vroong.laas.order.core.service.domain.order.query.GetOrderQuery;
 import vroong.laas.order.core.service.domain.order.service.OrderAddressRefiner;
 import vroong.laas.order.core.service.domain.order.service.OrderCreator;
 import vroong.laas.order.core.service.domain.order.service.OrderFinder;
+import vroong.laas.order.core.service.domain.order.service.OrderManager;
 
 @Facade
 @RequiredArgsConstructor
 public class OrderFacade {
 
   private final OrderCreator orderCreator;
+  private final OrderManager orderManager;
   private final OrderFinder orderFinder;
   private final OrderAddressRefiner orderAddressRefiner;
 
@@ -26,6 +29,13 @@ public class OrderFacade {
     Order order = orderCreator.create(command.items(), refinedOrigin, refinedDestination);
 
     return order.getId();
+  }
+
+  public void changeDestination(ChangeDestinationCommand command) {
+    Destination refinedDestination =
+        orderAddressRefiner.refineDestination(command.newDestination());
+
+    orderManager.changeDestination(command);
   }
 
   public Order getOrder(GetOrderQuery query) {

@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vroong.laas.order.core.enums.order.OrderStatus;
-import vroong.laas.order.core.enums.outbox.OutboxEventType;
 import vroong.laas.order.core.service.domain.order.Destination;
 import vroong.laas.order.core.service.domain.order.NewOrderItem;
 import vroong.laas.order.core.service.domain.order.Order;
@@ -85,7 +84,7 @@ public class OrderCreator {
     Order order = Order.fromEntity(orderEntity, orderItemEntities, orderLocationEntity);
 
     // save outbox
-    outboxEventAppender.append(OutboxEventType.ORDER_CREATED, order);
+    outboxEventAppender.appendOrderCreated(order);
 
     return order;
   }
