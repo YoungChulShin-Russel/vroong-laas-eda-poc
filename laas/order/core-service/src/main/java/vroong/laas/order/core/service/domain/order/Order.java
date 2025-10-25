@@ -20,7 +20,6 @@ public class Order {
   private final List<OrderItem> items;
   private OrderLocation location;
   private final Instant orderedAt;
-  private Instant deliveredAt;
   private Instant cancelledAt;
 
   /**
@@ -37,7 +36,6 @@ public class Order {
       List<OrderItem> items,
       OrderLocation location,
       Instant orderedAt,
-      Instant deliveredAt,
       Instant cancelledAt) {
     // 필수 값 체크
     if (id == null) {
@@ -56,7 +54,6 @@ public class Order {
     this.items = items != null ? new ArrayList<>(items) : new ArrayList<>();
     this.location = location;
     this.orderedAt = orderedAt;
-    this.deliveredAt = deliveredAt;
     this.cancelledAt = cancelledAt;
   }
 
@@ -72,7 +69,6 @@ public class Order {
         orderItemEntities.stream().map(OrderItem::fromEntity).toList(),
         OrderLocation.fromEntity(orderLocationEntity),
         orderEntity.getOrderedAt(),
-        orderEntity.getDeliveredAt(),
         orderEntity.getCancelledAt());
   }
 }
