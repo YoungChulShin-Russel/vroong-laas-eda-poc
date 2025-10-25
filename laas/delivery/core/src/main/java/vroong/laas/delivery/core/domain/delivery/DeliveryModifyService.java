@@ -1,14 +1,16 @@
 package vroong.laas.delivery.core.domain.delivery;
 
+import static vroong.laas.delivery.core.domain.outbox.OutboxEventType.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vroong.laas.delivery.core.domain.delivery.command.CancelDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.DeliverDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.PickupDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.RegisterDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.info.DeliveryInfo;
 import vroong.laas.delivery.core.domain.outbox.OutboxEventAppender;
-import vroong.laas.delivery.core.domain.outbox.OutboxEventType;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +29,8 @@ public class DeliveryModifyService {
     deliveryRepository.save(delivery);
 
     // delivery history
-    appendHistory(delivery);
+    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery);
+    deliveryHistoryRepository.save(deliveryHistory);
 
     // delivery-dispatch mapping
     DeliveryDispatchMapping deliveryDispatchMapping =
@@ -35,7 +38,7 @@ public class DeliveryModifyService {
     deliveryDispatchMappingRepository.save(deliveryDispatchMapping);
 
     // outbox
-    outboxEventAppender.append(OutboxEventType.DELIVERY_STARTED, delivery);
+    outboxEventAppender.append(DELIVERY_STARTED, delivery, deliveryHistory);
 
     return DeliveryInfo.fromEntity(delivery);
   }
@@ -43,42 +46,55 @@ public class DeliveryModifyService {
   @Transactional
   public DeliveryInfo pickupDelivery(PickupDeliveryCommand command) {
     // pickup
-    Delivery delivery = deliveryRepository.findById(command.deliveryId())
-        .orElseThrow(() -> new IllegalArgumentException("배송 정보를 찾을 수 없습니다"));
-
+    Delivery delivery = getDelivery(command.deliveryId());
     delivery.pickup();
-
     deliveryRepository.save(delivery);
 
     // history
-    appendHistory(delivery);
+    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery);
+    deliveryHistoryRepository.save(deliveryHistory);
 
     // outbox
-    outboxEventAppender.append(OutboxEventType.DELIVERY_DELIVERED, delivery);
+    outboxEventAppender.append(DELIVERY_DELIVERED, delivery, deliveryHistory);
 
     return DeliveryInfo.fromEntity(delivery);
   }
 
   @Transactional
   public DeliveryInfo deliverDelivery(DeliverDeliveryCommand command) {
-    Delivery delivery = deliveryRepository.findById(command.deliveryId())
-        .orElseThrow(() -> new IllegalArgumentException("배송 정보를 찾을 수 없습니다"));
-
+    Delivery delivery = getDelivery(command.deliveryId());
     delivery.deliver();
-
     deliveryRepository.save(delivery);
 
     // history
-    appendHistory(delivery);
+    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery);
+    deliveryHistoryRepository.save(deliveryHistory);
 
     // outbox
-    outboxEventAppender.append(OutboxEventType.DELIVERY_DELIVERED, delivery);
+    outboxEventAppender.append(DELIVERY_DELIVERED, delivery, deliveryHistory);
 
     return DeliveryInfo.fromEntity(delivery);
   }
 
-  private void appendHistory(Delivery delivery) {
-    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery);
+  @Transactional
+  public DeliveryInfo cancelDelivery(CancelDeliveryCommand command) {
+    // cancel delivery
+    Delivery delivery = getDelivery(command.deliveryId());
+    delivery.cancel();
+    deliveryRepository.save(delivery);
+
+    // add history
+    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery, command.reason());
     deliveryHistoryRepository.save(deliveryHistory);
+
+    // outbox
+    outboxEventAppender.append(DELIVERY_CANCELLED, delivery, deliveryHistory);
+
+    return DeliveryInfo.fromEntity(delivery);
+  }
+
+  private Delivery getDelivery(Long deliveryId) {
+    return deliveryRepository.findById(deliveryId)
+        .orElseThrow(() -> new IllegalArgumentException("배송 정보를 찾을 수 없습니다"));
   }
 }

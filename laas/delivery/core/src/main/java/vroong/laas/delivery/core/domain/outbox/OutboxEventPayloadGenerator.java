@@ -9,24 +9,27 @@ import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
 import vroong.laas.common.event.KafkaEventSource;
 import vroong.laas.common.event.KafkaEventType;
+import vroong.laas.common.event.payload.delivery.DeliveryCancelledEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryDeliveredEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryPickedUpEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryStartedEventPayload;
 import vroong.laas.delivery.core.domain.delivery.Delivery;
+import vroong.laas.delivery.core.domain.delivery.DeliveryHistory;
 
 @Component
 public class OutboxEventPayloadGenerator {
 
-  public String generate(OutboxEventType eventType, Delivery delivery) {
+  public String generate(OutboxEventType eventType, Delivery delivery, DeliveryHistory history) {
     return switch (eventType) {
       case DELIVERY_STARTED -> generateDeliveryStartedPayload(delivery);
       case DELIVERY_PICKED_UP -> generateDeliveryPickedUpPayload(delivery);
       case DELIVERY_DELIVERED -> generateDeliveryDeliveredPayload(delivery);
+      case DELIVERY_CANCELLED -> generateDeliveryCancelledPayload(delivery, history);
     };
 
   }
 
-  private String generateDeliveryStartedPayload(Delivery delivery) {
+  private String generateDeliveryStartedPayload(Delivery delivery, DeliveryHistory history) {
     var payload = DeliveryStartedEventPayload.builder()
         .deliveryId(delivery.getId())
         .deliveryNumber(delivery.getDeliveryNumber().value())
@@ -34,7 +37,7 @@ public class OutboxEventPayloadGenerator {
         .agentId(delivery.getAgentId())
         .deliveryFee(delivery.getDeliveryFee())
         .deliveryStatus(delivery.getStatus().name())
-        .startedAt(delivery.getCreatedAt())
+        .startedAt(history.getRegisteredAt())
         .build();
 
     var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_STARTED, payload);
@@ -42,11 +45,11 @@ public class OutboxEventPayloadGenerator {
     return kafkaEvent.toJson();
   }
 
-  private String generateDeliveryPickedUpPayload(Delivery delivery) {
+  private String generateDeliveryPickedUpPayload(Delivery delivery, DeliveryHistory history) {
     var payload = DeliveryPickedUpEventPayload.builder()
         .deliveryId(delivery.getId())
         .deliveryStatus(delivery.getStatus().name())
-        .pickedUpAt(delivery.getCreatedAt())
+        .pickedUpAt(history.getRegisteredAt())
         .build();
 
     var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_PICKED_UP, payload);
@@ -54,11 +57,24 @@ public class OutboxEventPayloadGenerator {
     return kafkaEvent.toJson();
   }
 
-  private String generateDeliveryDeliveredPayload(Delivery delivery) {
+  private String generateDeliveryDeliveredPayload(Delivery delivery, DeliveryHistory history) {
     var payload = DeliveryDeliveredEventPayload.builder()
         .deliveryId(delivery.getId())
         .deliveryStatus(delivery.getStatus().name())
-        .deliveredAt(delivery.getCreatedAt())
+        .deliveredAt(history.getRegisteredAt())
+        .build();
+
+    var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_DELIVERED, payload);
+
+    return kafkaEvent.toJson();
+  }
+
+  private String generateDeliveryCancelledPayload(Delivery delivery, DeliveryHistory history) {
+    var payload = DeliveryCancelledEventPayload.builder()
+        .deliveryId(delivery.getId())
+        .deliveryStatus(delivery.getStatus().name())
+        .reason(history.getReason())
+        .cancelledAt(history.getRegisteredAt())
         .build();
 
     var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_DELIVERED, payload);

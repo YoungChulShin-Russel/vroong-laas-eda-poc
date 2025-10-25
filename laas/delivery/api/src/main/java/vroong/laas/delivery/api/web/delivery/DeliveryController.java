@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vroong.laas.delivery.api.web.common.response.ApiResponse;
+import vroong.laas.delivery.api.web.delivery.request.CancelDeliveryRequest;
 import vroong.laas.delivery.api.web.delivery.request.RegisterDeliveryRequest;
 import vroong.laas.delivery.api.web.delivery.response.DeliveryIdResponse;
 import vroong.laas.delivery.core.application.delivery.DeliveryFacade;
@@ -44,6 +45,16 @@ public class DeliveryController {
       @PathVariable Long deliveryId
   ) {
     deliveryFacade.deliverDelivery(new DeliverDeliveryCommand(deliveryId));
+
+    return ApiResponse.success(null);
+  }
+
+  @PostMapping("/{deliveryId}/cancel")
+  public ApiResponse<Void> cancelDelivery(
+      @PathVariable Long deliveryId,
+      @Valid @RequestBody CancelDeliveryRequest request
+  ) {
+    deliveryFacade.cancelDelivery(request.toCommand(deliveryId));
 
     return ApiResponse.success(null);
   }

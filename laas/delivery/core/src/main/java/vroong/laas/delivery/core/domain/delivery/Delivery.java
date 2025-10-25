@@ -58,4 +58,8 @@ public class Delivery extends ConcurrentEntity {
   public void deliver() {
     this.status = DeliveryStatus.DELIVERED;
   }
+
+  public void cancel() {
+    this.status = DeliveryStatus.CANCELLED;
+  }
 }
