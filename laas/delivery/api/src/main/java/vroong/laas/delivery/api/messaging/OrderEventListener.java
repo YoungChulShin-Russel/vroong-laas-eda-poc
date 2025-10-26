@@ -1,6 +1,5 @@
-package vroong.laas.dispatch.api.messaging;
+package vroong.laas.delivery.api.messaging;
 
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,17 +9,15 @@ import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
 import vroong.laas.common.event.payload.order.OrderCancelledEventPayload;
-import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
-import vroong.laas.dispatch.core.application.dispatch.DispatchFacade;
-import vroong.laas.dispatch.core.domain.dispatch.command.CancelDispatchCommand;
-import vroong.laas.dispatch.core.domain.dispatch.command.RequestDispatchCommand;
+import vroong.laas.delivery.core.application.delivery.DeliveryFacade;
+import vroong.laas.delivery.core.domain.delivery.command.CancelDeliveryCommand;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class OrderEventListener {
 
-  private final DispatchFacade dispatchFacade;
+  private final DeliveryFacade deliveryFacade;
 
   @KafkaListener(
       topics = "order.event",
@@ -32,7 +29,6 @@ public class OrderEventListener {
     KafkaEvent<KafkaEventPayload> kafkaEvent = KafkaEvent.fromJson(payloadJson);
 
     switch (kafkaEvent.getType()) {
-      case ORDER_ORDER_CREATED -> handleOrderCreated(kafkaEvent);
       case ORDER_ORDER_CANCELLED -> handleOrderCancelled(kafkaEvent);
     }
 
@@ -40,14 +36,10 @@ public class OrderEventListener {
     log.info("handleOrderEvent end,");
   }
 
-  private void handleOrderCreated(KafkaEvent<KafkaEventPayload> kafkaEvent) {
-    OrderCreatedEventPayload payload = (OrderCreatedEventPayload) kafkaEvent.getPayload();
-    dispatchFacade.requestDispatch(new RequestDispatchCommand(payload.getOrderId(), Instant.now()));
-  }
-
   private void handleOrderCancelled(KafkaEvent<KafkaEventPayload> kafkaEvent) {
     OrderCancelledEventPayload payload = (OrderCancelledEventPayload) kafkaEvent.getPayload();
-    dispatchFacade.cancelDispatch(new CancelDispatchCommand(payload.getOrderId(), Instant.now()));
+    deliveryFacade.cancelDelivery(
+        new CancelDeliveryCommand(payload.getOrderId(), "Order cancelled"));
   }
 
 }

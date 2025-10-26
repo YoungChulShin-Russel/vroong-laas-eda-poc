@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import vroong.laas.delivery.core.common.annotation.Facade;
 import vroong.laas.delivery.core.domain.delivery.DeliveryModifyService;
 import vroong.laas.delivery.core.domain.delivery.command.CancelDeliveryCommand;
+import vroong.laas.delivery.core.domain.delivery.command.GiveUpDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.DeliverDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.PickupDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.RegisterDeliveryCommand;
@@ -27,6 +28,10 @@ public class DeliveryFacade {
 
   public void deliverDelivery(DeliverDeliveryCommand command) {
     deliveryModifyService.deliverDelivery(command);
+  }
+
+  public void giveUpDelivery(GiveUpDeliveryCommand command) {
+    deliveryModifyService.giveUpDelivery(command);
   }
 
   public void cancelDelivery(CancelDeliveryCommand command) {

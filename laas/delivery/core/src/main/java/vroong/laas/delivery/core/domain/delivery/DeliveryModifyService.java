@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vroong.laas.delivery.core.domain.delivery.command.CancelDeliveryCommand;
+import vroong.laas.delivery.core.domain.delivery.command.GiveUpDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.DeliverDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.PickupDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.RegisterDeliveryCommand;
@@ -72,6 +73,28 @@ public class DeliveryModifyService {
 
     // outbox
     outboxEventAppender.append(DELIVERY_DELIVERED, delivery, deliveryHistory);
+
+    return DeliveryInfo.fromEntity(delivery);
+  }
+
+  @Transactional
+  public DeliveryInfo giveUpDelivery(GiveUpDeliveryCommand command) {
+    // cancel delivery
+    Delivery delivery = getDelivery(command.deliveryId());
+
+    if (!delivery.getAgentId().equals(command.agentId())) {
+      throw new IllegalArgumentException("기사 정보가 일치하지 않습니다");
+    }
+
+    delivery.cancel();
+    deliveryRepository.save(delivery);
+
+    // add history
+    DeliveryHistory deliveryHistory = DeliveryHistory.appendNormal(delivery, command.reason());
+    deliveryHistoryRepository.save(deliveryHistory);
+
+    // outbox
+    outboxEventAppender.append(DELIVERY_CANCELLED, delivery, deliveryHistory);
 
     return DeliveryInfo.fromEntity(delivery);
   }

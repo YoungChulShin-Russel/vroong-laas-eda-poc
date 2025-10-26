@@ -16,6 +16,7 @@ import vroong.laas.order.api.web.order.response.OrderIdResponse;
 import vroong.laas.order.api.web.order.response.OrderResponse;
 import vroong.laas.order.core.service.application.order.OrderFacade;
 import vroong.laas.order.core.service.domain.order.Order;
+import vroong.laas.order.core.service.domain.order.command.CancelOrderCommand;
 import vroong.laas.order.core.service.domain.order.query.GetOrderQuery;
 
 @RestController
@@ -38,6 +39,14 @@ public class OrderController {
       @PathVariable Long orderId,
       @Valid @RequestBody ChangeDestinationRequest request) {
     orderFacade.changeDestination(request.toCommand(orderId));
+
+    return ApiResponse.success();
+  }
+
+  @PostMapping("/{orderId}/cancel")
+  public ApiResponse<OrderIdResponse> cancelOrder(
+      @PathVariable Long orderId) {
+    orderFacade.cancelOrder(new CancelOrderCommand(orderId));
 
     return ApiResponse.success();
   }

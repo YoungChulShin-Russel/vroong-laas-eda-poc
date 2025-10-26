@@ -1,5 +1,6 @@
 package vroong.laas.delivery.core.domain.outbox;
 
+import static vroong.laas.common.event.KafkaEventType.DELIVERY_DELIVERY_CANCELLED;
 import static vroong.laas.common.event.KafkaEventType.DELIVERY_DELIVERY_DELIVERED;
 import static vroong.laas.common.event.KafkaEventType.DELIVERY_DELIVERY_PICKED_UP;
 import static vroong.laas.common.event.KafkaEventType.DELIVERY_DELIVERY_STARTED;
@@ -80,7 +81,7 @@ public class OutboxEventPayloadGenerator {
         .cancelledAt(history.getRegisteredAt())
         .build();
 
-    var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_DELIVERED, payload);
+    var kafkaEvent = getKafkaEvent(DELIVERY_DELIVERY_CANCELLED, payload);
 
     return kafkaEvent.toJson();
   }

@@ -49,12 +49,12 @@ public class DeliveryController {
     return ApiResponse.success(null);
   }
 
-  @PostMapping("/{deliveryId}/cancel")
+  @PostMapping("/{deliveryId}/give-up")
   public ApiResponse<Void> cancelDelivery(
       @PathVariable Long deliveryId,
       @Valid @RequestBody CancelDeliveryRequest request
   ) {
-    deliveryFacade.cancelDelivery(request.toCommand(deliveryId));
+    deliveryFacade.giveUpDelivery(request.toCommand(deliveryId));
 
     return ApiResponse.success(null);
   }
