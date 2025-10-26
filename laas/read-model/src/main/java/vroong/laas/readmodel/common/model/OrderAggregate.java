@@ -121,6 +121,7 @@ public class OrderAggregate {
         private final BigDecimal suggestedFee; // 배차 시점에 제시된 배송비
         private final Instant requestedAt;
         private final Instant dispatchedAt;
+        private final Instant cancelledAt;
     }
 
     /**

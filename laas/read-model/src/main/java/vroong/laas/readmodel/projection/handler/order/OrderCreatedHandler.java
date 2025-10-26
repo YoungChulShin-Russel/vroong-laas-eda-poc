@@ -55,7 +55,7 @@ public class OrderCreatedHandler implements OrderEventHandler {
     }
     
     private OrderAggregate.OrderLocation convertLocation(
-            vroong.laas.common.event.payload.order.OrderCreatedEventPayload.OrderCreatedOrderLocation location) {
+            vroong.laas.common.event.payload.order.OrderLocationEventDto location) {
         
         if (location == null) {
             return null;
@@ -73,7 +73,7 @@ public class OrderCreatedHandler implements OrderEventHandler {
     }
     
     private List<OrderAggregate.OrderItem> convertItems(
-            List<vroong.laas.common.event.payload.order.OrderCreatedEventPayload.OrderCreatedOrderItem> items) {
+            List<vroong.laas.common.event.payload.order.OrderItemEventDto> items) {
         
         if (items == null) {
             return null;

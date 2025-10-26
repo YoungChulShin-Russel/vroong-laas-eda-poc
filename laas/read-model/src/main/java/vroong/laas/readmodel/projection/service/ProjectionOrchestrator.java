@@ -3,6 +3,7 @@ package vroong.laas.readmodel.projection.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.readmodel.projection.handler.DeliveryProjectionHandler;
 import vroong.laas.readmodel.projection.handler.DispatchProjectionHandler;
 import vroong.laas.readmodel.projection.handler.OrderProjectionHandler;
@@ -34,10 +35,31 @@ public class ProjectionOrchestrator {
                 orderEvent.getOrderId(), orderEvent.getKafkaEvent().getType());
         
         try {
-            // 1. Order projection 처리 (생성/수정/취소 등)
-            OrderAggregate projection = orderProjectionHandler.handleOrderEvent(orderEvent);
+            KafkaEventType eventType = orderEvent.getKafkaEvent().getType();
+            OrderAggregate projection;
             
-            // 2. Redis + MongoDB에 저장
+            // 이벤트 타입에 따라 처리 방식 분기
+            if (KafkaEventType.ORDER_ORDER_CREATED.equals(eventType)) {
+                // 1. Order 생성 이벤트 - 새로운 projection 생성
+                projection = orderProjectionHandler.handleOrderEvent(orderEvent);
+            } else if (KafkaEventType.ORDER_ORDER_CANCELLED.equals(eventType) || 
+                       KafkaEventType.ORDER_ORDER_DESTINATION_CHANGED.equals(eventType)) {
+                // 2. Order 업데이트 이벤트 - 기존 projection 업데이트
+                Optional<OrderAggregate> existingProjection = 
+                        projectionService.getOrderProjection(orderEvent.getOrderId());
+                
+                if (existingProjection.isEmpty()) {
+                    log.warn("Order projection not found for update event: orderId={}, eventType={}", 
+                            orderEvent.getOrderId(), eventType);
+                    return;
+                }
+                
+                projection = orderProjectionHandler.updateOrderEvent(existingProjection.get(), orderEvent);
+            } else {
+                throw new IllegalArgumentException("Unsupported order event type: " + eventType);
+            }
+            
+            // 3. Redis + MongoDB에 저장
             projectionService.saveOrderProjection(projection);
             
             log.info("Successfully processed order event: orderId={}, eventType={}", 

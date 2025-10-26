@@ -4,7 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
+import vroong.laas.common.event.payload.order.OrderCancelledEventPayload;
 import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
+import vroong.laas.common.event.payload.order.OrderDestinationChangedEventPayload;
+import vroong.laas.common.event.payload.order.OrderLocationEventDto;
+import vroong.laas.common.event.payload.order.OrderItemEventDto;
+
+import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
@@ -16,8 +22,11 @@ public class OrderEvent {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof OrderCreatedEventPayload orderCreatedPayload) {
             return orderCreatedPayload.getOrderId();
+        } else if (payload instanceof OrderCancelledEventPayload orderCancelledPayload) {
+            return orderCancelledPayload.getOrderId();
+        } else if (payload instanceof OrderDestinationChangedEventPayload destinationChangedPayload) {
+            return destinationChangedPayload.getOrderId();
         }
-        // 다른 order 이벤트 타입들 추가 가능
         return null;
     }
     
@@ -33,11 +42,13 @@ public class OrderEvent {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof OrderCreatedEventPayload orderCreatedPayload) {
             return orderCreatedPayload.getOrderStatus();
+        } else if (payload instanceof OrderCancelledEventPayload orderCancelledPayload) {
+            return orderCancelledPayload.getOrderStatus();
         }
         return null;
     }
     
-    public OrderCreatedEventPayload.OrderCreatedOrderLocation getOriginLocation() {
+    public OrderLocationEventDto getOriginLocation() {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof OrderCreatedEventPayload orderCreatedPayload) {
             return orderCreatedPayload.getOriginLocation();
@@ -45,20 +56,22 @@ public class OrderEvent {
         return null;
     }
     
-    public OrderCreatedEventPayload.OrderCreatedOrderLocation getDestinationLocation() {
+    public OrderLocationEventDto getDestinationLocation() {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof OrderCreatedEventPayload orderCreatedPayload) {
             return orderCreatedPayload.getDestinationLocation();
+        } else if (payload instanceof OrderDestinationChangedEventPayload destinationChangedPayload) {
+            return destinationChangedPayload.getDestinationLocation();
         }
         return null;
     }
     
-    public java.util.List<OrderCreatedEventPayload.OrderCreatedOrderItem> getItems() {
+    public List<OrderItemEventDto> getItems() {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof OrderCreatedEventPayload orderCreatedPayload) {
             return orderCreatedPayload.getItems();
         }
-        return java.util.List.of();
+        return List.of();
     }
     
     public java.time.Instant getOrderedAt() {
@@ -69,11 +82,43 @@ public class OrderEvent {
         return null;
     }
     
+    public java.time.Instant getCancelledAt() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof OrderCancelledEventPayload orderCancelledPayload) {
+            return orderCancelledPayload.getCancelledAt();
+        }
+        return null;
+    }
+    
+    public java.time.Instant getDestinationChangedAt() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof OrderDestinationChangedEventPayload destinationChangedPayload) {
+            return destinationChangedPayload.getChangedAt();
+        }
+        return null;
+    }
+    
     public String getEventId() {
         return kafkaEvent.getEventId();
     }
     
     public long getTimestamp() {
         return kafkaEvent.getTimestamp();
+    }
+    
+    public OrderEventType getEventType() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof OrderCreatedEventPayload) {
+            return OrderEventType.CREATED;
+        } else if (payload instanceof OrderCancelledEventPayload) {
+            return OrderEventType.CANCELLED;
+        } else if (payload instanceof OrderDestinationChangedEventPayload) {
+            return OrderEventType.DESTINATION_CHANGED;
+        }
+        return OrderEventType.UNKNOWN;
+    }
+    
+    public enum OrderEventType {
+        CREATED, CANCELLED, DESTINATION_CHANGED, UNKNOWN
     }
 }

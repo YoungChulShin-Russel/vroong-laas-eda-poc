@@ -56,7 +56,7 @@ public class DeliveryModifyService {
     deliveryHistoryRepository.save(deliveryHistory);
 
     // outbox
-    outboxEventAppender.append(DELIVERY_DELIVERED, delivery, deliveryHistory);
+    outboxEventAppender.append(DELIVERY_PICKED_UP, delivery, deliveryHistory);
 
     return DeliveryInfo.fromEntity(delivery);
   }

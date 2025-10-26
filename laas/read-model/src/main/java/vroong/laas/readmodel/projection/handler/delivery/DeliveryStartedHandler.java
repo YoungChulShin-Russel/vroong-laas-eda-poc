@@ -27,9 +27,9 @@ public class DeliveryStartedHandler implements DeliveryEventHandler {
         
         // 기존 DeliveryInfo가 있으면 업데이트, 없으면 새로 생성
         OrderAggregate.DeliveryInfo deliveryInfo = OrderAggregate.DeliveryInfo.builder()
-                .deliveryNumber(null)  // TODO: 이벤트에서 받아오도록 수정 필요
+                .deliveryNumber(deliveryEvent.getDeliveryNumber())
                 .agentId(deliveryEvent.getAgentId())
-                .deliveryFee(null)  // TODO: 이벤트에서 받아오도록 수정 필요
+                .deliveryFee(deliveryEvent.getDeliveryFee())
                 .deliveryStatus(deliveryEvent.getDeliveryStatus())
                 .deliveryStartedAt(deliveryEvent.getStartedAt())
                 .deliveryPickedUpAt(null)

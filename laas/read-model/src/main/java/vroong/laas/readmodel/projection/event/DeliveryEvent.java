@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
+import vroong.laas.common.event.payload.delivery.DeliveryCancelledEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryDeliveredEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryPickedUpEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryStartedEventPayload;
@@ -22,6 +23,8 @@ public class DeliveryEvent {
             return pickedUpPayload.getDeliveryId();
         } else if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
             return deliveredPayload.getDeliveryId();
+        } else if (payload instanceof DeliveryCancelledEventPayload cancelledPayload) {
+            return cancelledPayload.getDeliveryId();
         }
         return null;
     }
@@ -34,6 +37,8 @@ public class DeliveryEvent {
             return pickedUpPayload.getOrderId();
         } else if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
             return deliveredPayload.getOrderId();
+        } else if (payload instanceof DeliveryCancelledEventPayload cancelledPayload) {
+            return cancelledPayload.getOrderId();
         }
         return null;
     }
@@ -46,6 +51,8 @@ public class DeliveryEvent {
             return pickedUpPayload.getDeliveryStatus();
         } else if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
             return deliveredPayload.getDeliveryStatus();
+        } else if (payload instanceof DeliveryCancelledEventPayload cancelledPayload) {
+            return cancelledPayload.getDeliveryStatus();
         }
         return null;
     }
@@ -78,10 +85,23 @@ public class DeliveryEvent {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof DeliveryStartedEventPayload startedPayload) {
             return startedPayload.getAgentId();
-        } else if (payload instanceof DeliveryPickedUpEventPayload pickedUpPayload) {
-            return pickedUpPayload.getAgentId();
-        } else if (payload instanceof DeliveryDeliveredEventPayload deliveredPayload) {
-            return deliveredPayload.getAgentId();
+        }
+        // DeliveryPickedUpEventPayload와 DeliveryDeliveredEventPayload에는 agentId가 없음
+        return null;
+    }
+    
+    public String getDeliveryNumber() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getDeliveryNumber();
+        }
+        return null;
+    }
+    
+    public java.math.BigDecimal getDeliveryFee() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getDeliveryFee();
         }
         return null;
     }
@@ -94,6 +114,8 @@ public class DeliveryEvent {
             return DeliveryEventType.PICKED_UP;
         } else if (payload instanceof DeliveryDeliveredEventPayload) {
             return DeliveryEventType.DELIVERED;
+        } else if (payload instanceof DeliveryCancelledEventPayload) {
+            return DeliveryEventType.CANCELLED;
         }
         return DeliveryEventType.UNKNOWN;
     }
@@ -106,7 +128,23 @@ public class DeliveryEvent {
         return kafkaEvent.getTimestamp();
     }
     
+    public java.time.Instant getCancelledAt() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryCancelledEventPayload cancelledPayload) {
+            return cancelledPayload.getCancelledAt();
+        }
+        return null;
+    }
+    
+    public String getCancelReason() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryCancelledEventPayload cancelledPayload) {
+            return cancelledPayload.getReason();
+        }
+        return null;
+    }
+    
     public enum DeliveryEventType {
-        STARTED, PICKED_UP, DELIVERED, UNKNOWN
+        STARTED, PICKED_UP, DELIVERED, CANCELLED, UNKNOWN
     }
 }

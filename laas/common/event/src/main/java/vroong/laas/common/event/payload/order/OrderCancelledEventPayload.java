@@ -13,6 +13,7 @@ import vroong.laas.common.event.SchemaVersion;
 public class OrderCancelledEventPayload implements KafkaEventPayload {
 
   private final Long orderId;
+  private final String orderStatus;
   private final Instant cancelledAt;
 
   @Override
