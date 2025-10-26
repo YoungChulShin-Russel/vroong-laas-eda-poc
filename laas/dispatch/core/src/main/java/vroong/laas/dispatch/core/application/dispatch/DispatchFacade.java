@@ -6,6 +6,7 @@ import vroong.laas.dispatch.core.domain.dispatch.Dispatch;
 import vroong.laas.dispatch.core.domain.dispatch.DispatchProposal;
 import vroong.laas.dispatch.core.domain.dispatch.DispatchProposalService;
 import vroong.laas.dispatch.core.domain.dispatch.DispatchRequestService;
+import vroong.laas.dispatch.core.domain.dispatch.command.CancelDispatchCommand;
 import vroong.laas.dispatch.core.domain.dispatch.command.ProposeDispatchCommand;
 import vroong.laas.dispatch.core.domain.dispatch.command.RequestDispatchCommand;
 import vroong.laas.dispatch.core.domain.dispatch.command.RespondProposalCommand;
@@ -21,6 +22,10 @@ public class DispatchFacade {
     Dispatch dispatch = dispatchRequestService.requestDispatch(command);
 
     return dispatch.id();
+  }
+
+  public void cancelDispatch(CancelDispatchCommand command) {
+    dispatchRequestService.cancelDispatch(command);
   }
 
   public Long proposeDispatch(ProposeDispatchCommand command) {

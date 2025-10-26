@@ -5,6 +5,7 @@ import vroong.laas.common.event.payload.delivery.DeliveryCancelledEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryDeliveredEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryPickedUpEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryStartedEventPayload;
+import vroong.laas.common.event.payload.dispatch.DispatchCancelledEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchRequestedEventPayload;
 import vroong.laas.common.event.payload.order.OrderCancelledEventPayload;
@@ -38,6 +39,11 @@ public enum KafkaEventType {
       "dispatch.dispatch.dispatched",
       KafkaEventTopic.DISPATCH_EVENT,
       DispatchDispatchedEventPayload.class),
+
+  DISPATCH_DISPATCH_CANCELLED(
+      "dispatch.dispatch.cancelled",
+      KafkaEventTopic.DISPATCH_EVENT,
+      DispatchCancelledEventPayload.class),
 
   DELIVERY_DELIVERY_STARTED(
       "delivery.delivery.started",

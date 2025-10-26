@@ -9,6 +9,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
+import vroong.laas.common.event.payload.order.OrderCancelledEventPayload;
 import vroong.laas.common.event.payload.order.OrderCreatedEventPayload;
 import vroong.laas.dispatch.core.application.dispatch.DispatchFacade;
 import vroong.laas.dispatch.core.domain.dispatch.command.RequestDispatchCommand;
@@ -31,6 +32,7 @@ public class OrderEventListener {
 
     switch (kafkaEvent.getType()) {
       case ORDER_ORDER_CREATED -> handleOrderCreated(kafkaEvent);
+      case ORDER_ORDER_CANCELLED -> handleOrderCancelled(kafkaEvent);
     }
 
     ack.acknowledge();
@@ -40,6 +42,11 @@ public class OrderEventListener {
   private void handleOrderCreated(KafkaEvent<KafkaEventPayload> kafkaEvent) {
     OrderCreatedEventPayload payload = (OrderCreatedEventPayload) kafkaEvent.getPayload();
     dispatchFacade.requestDispatch(new RequestDispatchCommand(payload.getOrderId(), Instant.now()));
+  }
+
+  private void handleOrderCancelled(KafkaEvent<KafkaEventPayload> kafkaEvent) {
+    OrderCancelledEventPayload payload = (OrderCancelledEventPayload) kafkaEvent.getPayload();
+
   }
 
 }

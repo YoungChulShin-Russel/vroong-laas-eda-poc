@@ -77,4 +77,9 @@ public class DispatchEntity extends ConcurrentEntity {
         this.dispatchedAt = dispatchedAt;
         this.status = DispatchStatus.DISPATCHED;
     }
+
+    public void cancel() {
+        this.status = DispatchStatus.CANCELLED;
+        this.cancelledAt = Instant.now();
+    }
 }

@@ -1,5 +1,6 @@
 package vroong.laas.dispatch.core.domain.outbox;
 
+import static vroong.laas.common.event.KafkaEventType.DISPATCH_DISPATCH_CANCELLED;
 import static vroong.laas.common.event.KafkaEventType.DISPATCH_DISPATCH_DISPATCHED;
 import static vroong.laas.common.event.KafkaEventType.DISPATCH_DISPATCH_REQUESTED;
 
@@ -8,6 +9,7 @@ import vroong.laas.common.event.KafkaEvent;
 import vroong.laas.common.event.KafkaEventPayload;
 import vroong.laas.common.event.KafkaEventSource;
 import vroong.laas.common.event.KafkaEventType;
+import vroong.laas.common.event.payload.dispatch.DispatchCancelledEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchDispatchedEventPayload;
 import vroong.laas.common.event.payload.dispatch.DispatchRequestedEventPayload;
 import vroong.laas.dispatch.core.domain.dispatch.Dispatch;
@@ -21,6 +23,7 @@ public class OutboxEventPayloadGenerator {
     return switch (eventType) {
       case DISPATCH_REQUESTED -> generateRequested(dispatch);
       case DISPATCH_DISPATCHED -> generateDispatched(dispatch);
+      case DISPATCH_CANCELED -> generateCancelled(dispatch);
     };
   }
 
@@ -31,7 +34,7 @@ public class OutboxEventPayloadGenerator {
   }
 
   private String generateRequested(Dispatch dispatch) {
-    DispatchRequestedEventPayload payload = DispatchRequestedEventPayload.builder()
+    var payload = DispatchRequestedEventPayload.builder()
         .dispatchId(dispatch.id())
         .orderId(dispatch.orderId())
         .requestedAt(dispatch.requestedAt())
@@ -41,7 +44,7 @@ public class OutboxEventPayloadGenerator {
   }
 
   private String generateDispatched(Dispatch dispatch) {
-    DispatchDispatchedEventPayload payload = DispatchDispatchedEventPayload.builder()
+    var payload = DispatchDispatchedEventPayload.builder()
         .dispatchId(dispatch.id())
         .orderId(dispatch.orderId())
         .agentId(dispatch.agentId())
@@ -50,5 +53,15 @@ public class OutboxEventPayloadGenerator {
         .build();
 
     return generateKafkaEvent(DISPATCH_DISPATCH_DISPATCHED, payload).toJson();
+  }
+
+  private String generateCancelled(Dispatch dispatch) {
+    var payload = DispatchCancelledEventPayload.builder()
+        .dispatchId(dispatch.id())
+        .orderId(dispatch.orderId())
+        .cancelledAt(dispatch.cancelledAt())
+        .build();
+
+    return generateKafkaEvent(DISPATCH_DISPATCH_CANCELLED, payload).toJson();
   }
 }
