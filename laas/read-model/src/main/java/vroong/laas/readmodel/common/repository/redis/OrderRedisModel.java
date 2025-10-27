@@ -61,6 +61,8 @@ public class OrderRedisModel {
         private final Long agentId;
         private final BigDecimal suggestedFee;
         @JsonFormat(shape = JsonFormat.Shape.STRING)
+        private final Instant requestedAt;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         private final Instant dispatchedAt;
     }
     
@@ -145,6 +147,7 @@ public class OrderRedisModel {
         return DispatchInfoRedis.builder()
                 .agentId(dispatchInfo.getAgentId())
                 .suggestedFee(dispatchInfo.getSuggestedFee())
+                .requestedAt(dispatchInfo.getRequestedAt())
                 .dispatchedAt(dispatchInfo.getDispatchedAt())
                 .build();
     }
@@ -218,6 +221,7 @@ public class OrderRedisModel {
         return OrderAggregate.DispatchInfo.builder()
                 .agentId(redis.getAgentId())
                 .suggestedFee(redis.getSuggestedFee())
+                .requestedAt(redis.getRequestedAt())
                 .dispatchedAt(redis.getDispatchedAt())
                 .build();
     }

@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
  * Reactive MongoDB Configuration
  */
 @Configuration
-@EnableReactiveMongoRepositories(basePackages = "vroong.laas.readmodel.repository.mongo")
+@EnableReactiveMongoRepositories(basePackages = "vroong.laas.readmodel.common.repository.mongo")
 public class MongoConfig extends AbstractReactiveMongoConfiguration {
 
     @Value("${spring.data.mongodb.host}")

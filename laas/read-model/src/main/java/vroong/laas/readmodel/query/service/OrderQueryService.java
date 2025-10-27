@@ -21,8 +21,10 @@ import vroong.laas.readmodel.common.repository.redis.OrderProjectionRedisReposit
 import vroong.laas.readmodel.query.controller.response.OrderResponse;
 
 import java.util.List;
-
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Order Query Service (Reactive)
@@ -242,16 +244,72 @@ public class OrderQueryService {
     public Mono<List<OrderTimelineEvent>> getOrderTimeline(Long orderId) {
         log.debug("Getting order timeline: orderId={}", orderId);
         
-        return Mono.fromCallable(() -> {
-            List<OrderTimelineDocument> documents = orderHistoryMongoRepository.findByOrderIdOrderByTimestamp(orderId);
-            return documents.stream()
-                    .map(OrderTimelineDocument::toModel)
-                    .toList();
-        })
+        return orderHistoryMongoRepository.findByOrderIdOrderByTimestamp(orderId)
+                .map(documents -> documents.stream()
+                        .map(OrderTimelineDocument::toModel)
+                        .toList())
                 .doOnSuccess(timeline -> log.debug("Found {} timeline events for orderId={}", 
                         timeline.size(), orderId))
                 .doOnError(e -> log.error("Failed to get order timeline: orderId={}, error={}", 
                         orderId, e.getMessage()));
+    }
+    
+    /**
+     * 기사별 주문 조회 (완전 비동기)
+     * 
+     * @param agentId 기사 ID
+     * @param startDate 조회 시작일
+     * @param endDate 조회 종료일  
+     * @param deliveryStatus 배송 상태 (옵션)
+     * @return Mono<List<OrderAggregate>>
+     */
+    public Mono<List<OrderAggregate>> getOrdersByAgent(Long agentId, LocalDateTime startDate, LocalDateTime endDate, String deliveryStatus) {
+        log.debug("Querying orders by agent: agentId={}, startDate={}, endDate={}, deliveryStatus={}", 
+                agentId, startDate, endDate, deliveryStatus);
+        
+        Instant startInstant = startDate.atZone(ZoneId.systemDefault()).toInstant();
+        Instant endInstant = endDate.atZone(ZoneId.systemDefault()).toInstant();
+        
+        OrderProjectionMongoRepository.OrderSearchConditions conditions = 
+                OrderProjectionMongoRepository.OrderSearchConditions.builder()
+                        .startDate(startInstant)
+                        .endDate(endInstant)
+                        .agentId(agentId)
+                        .deliveryStatus(deliveryStatus);
+        
+        return orderMongoRepository.findOrdersByConditions(conditions)
+                .doOnSuccess(orders -> log.debug("Found {} orders for agentId={}", orders.size(), agentId))
+                .doOnError(e -> log.error("Failed to get orders by agent: agentId={}, error={}", agentId, e.getMessage()));
+    }
+    
+    /**
+     * 관리자용 주문 조회 (완전 비동기)
+     * 
+     * @param startDate 조회 시작일
+     * @param endDate 조회 종료일
+     * @param agentId 기사 ID (옵션)
+     * @param orderStatus 주문 상태 (옵션)
+     * @return Mono<List<OrderAggregate>>
+     */
+    public Mono<List<OrderAggregate>> getOrdersForAdmin(
+        Instant startDate,
+        Instant endDate,
+        Long agentId,
+        String orderStatus
+    ) {
+        log.debug("Querying orders for admin: startDate={}, endDate={}, agentId={}, orderStatus={}", 
+                startDate, endDate, agentId, orderStatus);
+        
+        OrderProjectionMongoRepository.OrderSearchConditions conditions = 
+                OrderProjectionMongoRepository.OrderSearchConditions.builder()
+                        .startDate(startDate)
+                        .endDate(endDate)
+                        .agentId(agentId)
+                        .orderStatus(orderStatus);
+        
+        return orderMongoRepository.findOrdersByConditions(conditions)
+                .doOnSuccess(orders -> log.debug("Found {} orders for admin query", orders.size()))
+                .doOnError(e -> log.error("Failed to get orders for admin: error={}", e.getMessage()));
     }
 }
 

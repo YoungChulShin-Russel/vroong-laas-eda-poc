@@ -11,7 +11,7 @@ public record OrderResponse(
     Long orderId,
     Long dispatchId,
     Long deliveryId,
-
+    Long agentId,
     String orderNumber,
     String deliveryNumber,
 
@@ -48,6 +48,7 @@ public record OrderResponse(
         Long orderId = aggregate.getOrderId();
         Long dispatchId = aggregate.getDispatchId();
         Long deliveryId = aggregate.getDeliveryId();
+        Long agentId = (dispatchInfo != null) ? dispatchInfo.getAgentId() : null;
         
         // Order 정보
         String orderNumber = orderInfo != null ? orderInfo.getOrderNumber() : null;
@@ -83,6 +84,7 @@ public record OrderResponse(
             orderId,
             dispatchId,
             deliveryId,
+            agentId,
             orderNumber,
             deliveryNumber,
             originLocation,

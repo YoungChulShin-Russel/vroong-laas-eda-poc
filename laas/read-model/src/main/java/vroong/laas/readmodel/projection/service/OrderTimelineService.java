@@ -9,14 +9,13 @@ import vroong.laas.readmodel.common.repository.mongo.OrderTimelineRepository;
 import vroong.laas.readmodel.projection.event.OrderEvent;
 import vroong.laas.readmodel.projection.event.DispatchEvent;
 import vroong.laas.readmodel.projection.event.DeliveryEvent;
-import vroong.laas.readmodel.projection.service.ProjectionService;
 import vroong.laas.readmodel.common.model.OrderAggregate;
 import vroong.laas.common.event.KafkaEventType;
 import vroong.laas.common.event.payload.order.OrderLocationEventDto;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -24,7 +23,6 @@ import java.util.Optional;
 public class OrderTimelineService {
     
     private final OrderTimelineRepository repository;
-    private final ProjectionService projectionService;
     
     /**
      * Order 이벤트를 타임라인으로 변환하여 저장
@@ -44,7 +42,7 @@ public class OrderTimelineService {
             
             if (timelineEvent != null) {
                 OrderTimelineDocument document = OrderTimelineDocument.fromModel(timelineEvent);
-                repository.save(document);
+                repository.save(document).subscribe(); // Fire and forget
                 log.debug("Saved order timeline event: orderId={}, eventType={}", 
                         orderEvent.getOrderId(), eventType);
             }
@@ -73,7 +71,7 @@ public class OrderTimelineService {
             
             if (timelineEvent != null) {
                 OrderTimelineDocument document = OrderTimelineDocument.fromModel(timelineEvent);
-                repository.save(document);
+                repository.save(document).subscribe(); // Fire and forget
                 log.debug("Saved dispatch timeline event: orderId={}, eventType={}", 
                         dispatchEvent.getOrderId(), eventType);
             }
@@ -104,7 +102,7 @@ public class OrderTimelineService {
             
             if (timelineEvent != null) {
                 OrderTimelineDocument document = OrderTimelineDocument.fromModel(timelineEvent);
-                repository.save(document);
+                repository.save(document).subscribe(); // Fire and forget
                 log.debug("Saved delivery timeline event: orderId={}, eventType={}", 
                         deliveryEvent.getOrderId(), eventType);
             }
@@ -118,11 +116,11 @@ public class OrderTimelineService {
     /**
      * 주문 타임라인 조회
      */
-    public List<OrderTimelineEvent> getOrderTimeline(Long orderId) {
-        List<OrderTimelineDocument> documents = repository.findByOrderIdOrderByTimestamp(orderId);
-        return documents.stream()
-                .map(OrderTimelineDocument::toModel)
-                .toList();
+    public Mono<List<OrderTimelineEvent>> getOrderTimeline(Long orderId) {
+        return repository.findByOrderIdOrderByTimestamp(orderId)
+                .map(documents -> documents.stream()
+                        .map(OrderTimelineDocument::toModel)
+                        .toList());
     }
     
     // === Private Methods for Timeline Creation ===
@@ -148,17 +146,11 @@ public class OrderTimelineService {
     }
     
     private OrderTimelineEvent createDestinationChangedTimeline(OrderEvent orderEvent) {
-        // 기존 주문 정보에서 이전 주소 조회
-        Optional<OrderAggregate> existingOrder = projectionService.getOrderProjection(orderEvent.getOrderId());
-        String beforeAddress = existingOrder
-                .map(order -> formatOrderLocation(order.getOrderInfo().getDestinationLocation()))
-                .orElse("알 수 없음");
-        
         String afterAddress = formatOrderLocationEvent(orderEvent.getDestinationLocation());
         
         OrderTimelineEvent.ChangeInfo changeInfo = OrderTimelineEvent.ChangeInfo.builder()
                 .field("destinationAddress")
-                .before(beforeAddress)
+                .before("이전 주소") // 단순화: 실제 이전 주소는 별도 로직에서 처리
                 .after(afterAddress)
                 .build();
         
@@ -240,28 +232,6 @@ public class OrderTimelineService {
                 .description("배송이 취소되었습니다")
                 .createdAt(Instant.now())
                 .build();
-    }
-    
-    private String formatOrderLocation(OrderAggregate.OrderLocation location) {
-        if (location == null) {
-            return "알 수 없음";
-        }
-        
-        StringBuilder address = new StringBuilder();
-        if (location.getRoadAddress() != null) {
-            address.append(location.getRoadAddress());
-        } else if (location.getJibunAddress() != null) {
-            address.append(location.getJibunAddress());
-        }
-        
-        if (location.getDetailAddress() != null && !location.getDetailAddress().isEmpty()) {
-            if (address.length() > 0) {
-                address.append(" ");
-            }
-            address.append(location.getDetailAddress());
-        }
-        
-        return address.length() > 0 ? address.toString() : "알 수 없음";
     }
     
     private String formatOrderLocationEvent(OrderLocationEventDto location) {

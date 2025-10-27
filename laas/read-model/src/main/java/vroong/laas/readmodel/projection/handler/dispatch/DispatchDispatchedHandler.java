@@ -31,16 +31,24 @@ public class DispatchDispatchedHandler implements DispatchEventHandler {
         
         Instant now = Instant.now();
         
-        // DispatchInfo 구성
-        OrderAggregate.DispatchInfo dispatchInfo = OrderAggregate.DispatchInfo.builder()
+        // DispatchInfo 구성 (null 체크 포함)
+        OrderAggregate.DispatchInfo dispatchInfo;
+        if (existingProjection.getDispatchInfo() != null) {
+            dispatchInfo = existingProjection.getDispatchInfo().toBuilder()
                 .agentId(dispatchEvent.getAgentId())
                 .suggestedFee(dispatchEvent.getDeliveryFee())
                 .dispatchedAt(dispatchEvent.getDispatchedAt())
                 .build();
-        
+        } else {
+            dispatchInfo = OrderAggregate.DispatchInfo.builder()
+                .agentId(dispatchEvent.getAgentId())
+                .suggestedFee(dispatchEvent.getDeliveryFee())
+                .dispatchedAt(dispatchEvent.getDispatchedAt())
+                .build();
+        }
+
         // OrderAggregate 업데이트
         OrderAggregate updatedProjection = existingProjection.toBuilder()
-                .dispatchId(dispatchEvent.getDispatchId())
                 .dispatchInfo(dispatchInfo)
                 .updatedAt(now)
                 .build();

@@ -71,6 +71,8 @@ public class OrderDocument {
         private final Long agentId;
         private final BigDecimal suggestedFee;
         @Indexed
+        private final Instant requestedAt;
+        @Indexed
         private final Instant dispatchedAt;
     }
     
@@ -157,6 +159,7 @@ public class OrderDocument {
         return DispatchInfoDocument.builder()
                 .agentId(dispatchInfo.getAgentId())
                 .suggestedFee(dispatchInfo.getSuggestedFee())
+                .requestedAt(dispatchInfo.getRequestedAt())
                 .dispatchedAt(dispatchInfo.getDispatchedAt())
                 .build();
     }
@@ -230,6 +233,7 @@ public class OrderDocument {
         return OrderAggregate.DispatchInfo.builder()
                 .agentId(doc.getAgentId())
                 .suggestedFee(doc.getSuggestedFee())
+                .requestedAt(doc.getRequestedAt())
                 .dispatchedAt(doc.getDispatchedAt())
                 .build();
     }
