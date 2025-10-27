@@ -10,6 +10,7 @@ public class AgentQueryService {
 
   private final AgentApiCaller agentApiCaller;
 
+  // 캐시 필요
   public AgentInfo getAgentInfo(Long agentId) {
     return agentApiCaller.getAgentInfo(agentId);
   }

@@ -82,6 +82,9 @@ public class OrderDocument {
         private final String deliveryNumber;
         @Indexed
         private final Long agentId;
+        private final String agentName;
+        private final String agentNumber;
+        private final String agentPhoneNumber;
         private final BigDecimal deliveryFee;
         @Indexed
         private final String deliveryStatus;
@@ -168,6 +171,9 @@ public class OrderDocument {
         return DeliveryInfoDocument.builder()
                 .deliveryNumber(deliveryInfo.getDeliveryNumber())
                 .agentId(deliveryInfo.getAgentId())
+                .agentName(deliveryInfo.getAgentName())
+                .agentNumber(deliveryInfo.getAgentNumber())
+                .agentPhoneNumber(deliveryInfo.getAgentPhoneNumber())
                 .deliveryFee(deliveryInfo.getDeliveryFee())
                 .deliveryStatus(deliveryInfo.getDeliveryStatus())
                 .deliveryStartedAt(deliveryInfo.getDeliveryStartedAt())
@@ -242,6 +248,9 @@ public class OrderDocument {
         return OrderAggregate.DeliveryInfo.builder()
                 .deliveryNumber(doc.getDeliveryNumber())
                 .agentId(doc.getAgentId())
+                .agentName(doc.getAgentName())
+                .agentNumber(doc.getAgentNumber())
+                .agentPhoneNumber(doc.getAgentPhoneNumber())
                 .deliveryFee(doc.getDeliveryFee())
                 .deliveryStatus(doc.getDeliveryStatus())
                 .deliveryStartedAt(doc.getDeliveryStartedAt())

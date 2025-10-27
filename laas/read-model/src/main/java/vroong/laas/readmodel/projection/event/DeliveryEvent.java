@@ -90,6 +90,30 @@ public class DeliveryEvent {
         return null;
     }
     
+    public String getAgentName() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getAgentName();
+        }
+        return null;
+    }
+    
+    public String getAgentNumber() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getAgentNumber();
+        }
+        return null;
+    }
+    
+    public String getAgentPhoneNumber() {
+        KafkaEventPayload payload = kafkaEvent.getPayload();
+        if (payload instanceof DeliveryStartedEventPayload startedPayload) {
+            return startedPayload.getAgentPhoneNumber();
+        }
+        return null;
+    }
+    
     public String getDeliveryNumber() {
         KafkaEventPayload payload = kafkaEvent.getPayload();
         if (payload instanceof DeliveryStartedEventPayload startedPayload) {

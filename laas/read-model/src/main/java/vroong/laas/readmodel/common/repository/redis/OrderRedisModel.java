@@ -71,6 +71,9 @@ public class OrderRedisModel {
     public static class DeliveryInfoRedis {
         private final String deliveryNumber;
         private final Long agentId;
+        private final String agentName;
+        private final String agentNumber;
+        private final String agentPhoneNumber;
         private final BigDecimal deliveryFee;
         private final String deliveryStatus;
         @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -156,6 +159,9 @@ public class OrderRedisModel {
         return DeliveryInfoRedis.builder()
                 .deliveryNumber(deliveryInfo.getDeliveryNumber())
                 .agentId(deliveryInfo.getAgentId())
+                .agentName(deliveryInfo.getAgentName())
+                .agentNumber(deliveryInfo.getAgentNumber())
+                .agentPhoneNumber(deliveryInfo.getAgentPhoneNumber())
                 .deliveryFee(deliveryInfo.getDeliveryFee())
                 .deliveryStatus(deliveryInfo.getDeliveryStatus())
                 .deliveryStartedAt(deliveryInfo.getDeliveryStartedAt())
@@ -230,6 +236,9 @@ public class OrderRedisModel {
         return OrderAggregate.DeliveryInfo.builder()
                 .deliveryNumber(redis.getDeliveryNumber())
                 .agentId(redis.getAgentId())
+                .agentName(redis.getAgentName())
+                .agentNumber(redis.getAgentNumber())
+                .agentPhoneNumber(redis.getAgentPhoneNumber())
                 .deliveryFee(redis.getDeliveryFee())
                 .deliveryStatus(redis.getDeliveryStatus())
                 .deliveryStartedAt(redis.getDeliveryStartedAt())

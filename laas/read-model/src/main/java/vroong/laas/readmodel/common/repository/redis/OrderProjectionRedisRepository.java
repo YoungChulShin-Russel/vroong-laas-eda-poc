@@ -226,6 +226,15 @@ public class OrderProjectionRedisRepository {
         if (map.get("agent_id") != null) {
             builder.agentId(((Number) map.get("agent_id")).longValue());
         }
+        if (map.get("agent_name") != null) {
+            builder.agentName((String) map.get("agent_name"));
+        }
+        if (map.get("agent_number") != null) {
+            builder.agentNumber((String) map.get("agent_number"));
+        }
+        if (map.get("agent_phone_number") != null) {
+            builder.agentPhoneNumber((String) map.get("agent_phone_number"));
+        }
         if (map.get("delivery_fee") != null) {
             builder.deliveryFee(new BigDecimal(map.get("delivery_fee").toString()));
         }

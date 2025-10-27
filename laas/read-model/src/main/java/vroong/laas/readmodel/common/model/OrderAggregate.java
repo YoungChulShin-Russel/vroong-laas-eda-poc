@@ -138,6 +138,9 @@ public class OrderAggregate {
     public static class DeliveryInfo {
         private final String deliveryNumber;
         private final Long agentId;
+        private final String agentName;
+        private final String agentNumber;
+        private final String agentPhoneNumber;
         private final BigDecimal deliveryFee; // 실제 배송비 (suggestedFee와 다를 수 있음)
         private final String deliveryStatus;
 

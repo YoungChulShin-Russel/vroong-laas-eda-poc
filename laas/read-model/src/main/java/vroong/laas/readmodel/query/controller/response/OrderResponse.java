@@ -12,6 +12,9 @@ public record OrderResponse(
     Long dispatchId,
     Long deliveryId,
     Long agentId,
+    String agentName,
+    String agentNumber,
+    String agentPhoneNumber,
     String orderNumber,
     String deliveryNumber,
 
@@ -48,7 +51,25 @@ public record OrderResponse(
         Long orderId = aggregate.getOrderId();
         Long dispatchId = aggregate.getDispatchId();
         Long deliveryId = aggregate.getDeliveryId();
-        Long agentId = (dispatchInfo != null) ? dispatchInfo.getAgentId() : null;
+        // Agent 정보 - deliveryInfo 우선, fallback to dispatchInfo
+        Long agentId = null;
+        String agentName = null;
+        String agentNumber = null;
+        String agentPhoneNumber = null;
+        
+        if (deliveryInfo != null) {
+            agentId = deliveryInfo.getAgentId();
+            agentName = deliveryInfo.getAgentName();
+            agentNumber = deliveryInfo.getAgentNumber();
+            agentPhoneNumber = deliveryInfo.getAgentPhoneNumber();
+            // 디버깅 로그 (임시)
+            System.out.println("DeliveryInfo exists - agentId: " + agentId + ", agentName: " + agentName + ", agentNumber: " + agentNumber);
+        } else if (dispatchInfo != null) {
+            agentId = dispatchInfo.getAgentId();
+            System.out.println("Only DispatchInfo exists - agentId: " + agentId);
+        } else {
+            System.out.println("Neither DeliveryInfo nor DispatchInfo exists");
+        }
         
         // Order 정보
         String orderNumber = orderInfo != null ? orderInfo.getOrderNumber() : null;
@@ -85,6 +106,9 @@ public record OrderResponse(
             dispatchId,
             deliveryId,
             agentId,
+            agentName,
+            agentNumber,
+            agentPhoneNumber,
             orderNumber,
             deliveryNumber,
             originLocation,

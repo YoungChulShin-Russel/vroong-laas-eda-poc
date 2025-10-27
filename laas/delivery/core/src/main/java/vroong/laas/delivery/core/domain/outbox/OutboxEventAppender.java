@@ -20,6 +20,14 @@ public class OutboxEventAppender {
   public void append(
       OutboxEventType eventType,
       Delivery delivery,
+      DeliveryHistory history) {
+    append(eventType, delivery, history, null);
+  }
+
+  @Transactional
+  public void append(
+      OutboxEventType eventType,
+      Delivery delivery,
       DeliveryHistory history,
       AgentInfo agentInfo) {
     String payload = payloadGenerator.generate(eventType, delivery, history, agentInfo);
