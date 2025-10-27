@@ -16,13 +16,18 @@ import vroong.laas.common.event.payload.delivery.DeliveryPickedUpEventPayload;
 import vroong.laas.common.event.payload.delivery.DeliveryStartedEventPayload;
 import vroong.laas.delivery.core.domain.delivery.Delivery;
 import vroong.laas.delivery.core.domain.delivery.DeliveryHistory;
+import vroong.laas.delivery.core.domain.delivery.info.AgentInfo;
 
 @Component
 public class OutboxEventPayloadGenerator {
 
-  public String generate(OutboxEventType eventType, Delivery delivery, DeliveryHistory history) {
+  public String generate(
+      OutboxEventType eventType,
+      Delivery delivery,
+      DeliveryHistory history,
+      AgentInfo agentInfo) {
     return switch (eventType) {
-      case DELIVERY_STARTED -> generateDeliveryStartedPayload(delivery, history);
+      case DELIVERY_STARTED -> generateDeliveryStartedPayload(delivery, history, agentInfo);
       case DELIVERY_PICKED_UP -> generateDeliveryPickedUpPayload(delivery, history);
       case DELIVERY_DELIVERED -> generateDeliveryDeliveredPayload(delivery, history);
       case DELIVERY_CANCELLED -> generateDeliveryCancelledPayload(delivery, history);
@@ -30,12 +35,18 @@ public class OutboxEventPayloadGenerator {
 
   }
 
-  private String generateDeliveryStartedPayload(Delivery delivery, DeliveryHistory history) {
+  private String generateDeliveryStartedPayload(
+      Delivery delivery,
+      DeliveryHistory history,
+      AgentInfo agentInfo) {
     var payload = DeliveryStartedEventPayload.builder()
         .deliveryId(delivery.getId())
         .deliveryNumber(delivery.getDeliveryNumber().value())
         .orderId(delivery.getOrderId())
         .agentId(delivery.getAgentId())
+        .agentName(agentInfo.agentName())
+        .agentNumber(agentInfo.agentNumber())
+        .agentPhoneNumber(agentInfo.phoneNumber())
         .deliveryFee(delivery.getDeliveryFee())
         .deliveryStatus(delivery.getStatus().name())
         .startedAt(history.getRegisteredAt())

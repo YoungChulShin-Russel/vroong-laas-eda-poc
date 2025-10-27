@@ -17,6 +17,9 @@ public class DeliveryStartedEventPayload implements KafkaEventPayload {
   private String deliveryNumber;
   private Long orderId;
   private Long agentId;
+  private String agentName;
+  private String agentNumber;
+  private String agentPhoneNumber;
   private BigDecimal deliveryFee;
   private String deliveryStatus;
   private Instant startedAt;

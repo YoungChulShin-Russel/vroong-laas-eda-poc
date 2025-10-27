@@ -10,6 +10,7 @@ import vroong.laas.delivery.core.domain.delivery.command.GiveUpDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.DeliverDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.PickupDeliveryCommand;
 import vroong.laas.delivery.core.domain.delivery.command.RegisterDeliveryCommand;
+import vroong.laas.delivery.core.domain.delivery.info.AgentInfo;
 import vroong.laas.delivery.core.domain.delivery.info.DeliveryInfo;
 import vroong.laas.delivery.core.domain.outbox.OutboxEventAppender;
 
@@ -24,7 +25,7 @@ public class DeliveryModifyService {
   private final DeliveryHistoryRepository deliveryHistoryRepository;
 
   @Transactional
-  public DeliveryInfo registerDelivery(RegisterDeliveryCommand command) {
+  public DeliveryInfo registerDelivery(RegisterDeliveryCommand command, AgentInfo agentInfo) {
     // delivery
     Delivery delivery = Delivery.register(command, deliveryNumberGenerator);
     deliveryRepository.save(delivery);
@@ -39,7 +40,7 @@ public class DeliveryModifyService {
     deliveryDispatchMappingRepository.save(deliveryDispatchMapping);
 
     // outbox
-    outboxEventAppender.append(DELIVERY_STARTED, delivery, deliveryHistory);
+    outboxEventAppender.append(DELIVERY_STARTED, delivery, deliveryHistory, agentInfo);
 
     return DeliveryInfo.fromEntity(delivery);
   }
