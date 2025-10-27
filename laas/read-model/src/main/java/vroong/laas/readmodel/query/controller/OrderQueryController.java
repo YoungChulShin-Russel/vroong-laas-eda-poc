@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import vroong.laas.readmodel.query.controller.response.ApiResponse;
 import vroong.laas.readmodel.query.controller.response.OrderResponse;
+import vroong.laas.readmodel.query.controller.response.OrderTimelineResponse;
 import vroong.laas.readmodel.query.service.OrderQueryService;
+
+import java.util.List;
 
 /**
  * Order Query Controller (Reactive)
@@ -43,6 +46,27 @@ public class OrderQueryController {
         return queryService.getOrder(orderId)
                 .map(ApiResponse::success)
                 .doOnError(e -> log.error("Failed to get order projection: orderId={}, error={}", 
+                        orderId, e.getMessage()));
+    }
+
+    /**
+     * Order Timeline 조회
+     * 
+     * GET /api/v1/orders/{orderId}/timeline
+     * 
+     * @param orderId Order ID
+     * @return List<OrderTimelineResponse>
+     */
+    @GetMapping("/{orderId}/timeline")
+    public Mono<ApiResponse<List<OrderTimelineResponse>>> getOrderTimeline(@PathVariable Long orderId) {
+        log.info("GET /api/v1/orders/{}/timeline", orderId);
+        
+        return queryService.getOrderTimeline(orderId)
+                .map(timeline -> timeline.stream()
+                        .map(OrderTimelineResponse::fromModel)
+                        .toList())
+                .map(ApiResponse::success)
+                .doOnError(e -> log.error("Failed to get order timeline: orderId={}, error={}", 
                         orderId, e.getMessage()));
     }
 

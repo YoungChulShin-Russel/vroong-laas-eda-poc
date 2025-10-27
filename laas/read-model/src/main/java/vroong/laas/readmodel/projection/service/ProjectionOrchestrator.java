@@ -59,8 +59,8 @@ public class ProjectionOrchestrator {
                 throw new IllegalArgumentException("Unsupported order event type: " + eventType);
             }
             
-            // 3. Redis + MongoDB에 저장
-            projectionService.saveOrderProjection(projection);
+            // 3. Projection과 Timeline 함께 저장
+            projectionService.saveOrderProjectionWithTimeline(projection, orderEvent);
             
             log.info("Successfully processed order event: orderId={}, eventType={}", 
                     orderEvent.getOrderId(), orderEvent.getKafkaEvent().getType());
@@ -94,9 +94,8 @@ public class ProjectionOrchestrator {
             OrderAggregate updatedProjection = dispatchProjectionHandler.updateDispatchInfo(
                     existingProjection.get(), dispatchEvent);
             
-            // 3. 저장
-            projectionService.saveOrderProjection(updatedProjection);
-            
+            // 3. Projection과 Timeline 함께 저장
+            projectionService.saveOrderProjectionWithTimeline(updatedProjection, dispatchEvent);
             
             log.info("Successfully processed dispatch event: dispatchId={}, orderId={}", 
                     dispatchEvent.getDispatchId(), dispatchEvent.getOrderId());
@@ -138,9 +137,8 @@ public class ProjectionOrchestrator {
             OrderAggregate updatedProjection = deliveryProjectionHandler.updateDeliveryStatus(
                     existingProjection.get(), deliveryEvent);
             
-            // 4. 저장
-            projectionService.saveOrderProjection(updatedProjection);
-            
+            // 4. Projection과 Timeline 함께 저장
+            projectionService.saveOrderProjectionWithTimeline(updatedProjection, deliveryEvent);
             
             log.info("Successfully processed delivery event: deliveryId={}, orderId={}, eventType={}", 
                     deliveryEvent.getDeliveryId(), orderId, deliveryEvent.getEventType());

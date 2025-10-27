@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import vroong.laas.readmodel.common.model.OrderAggregate;
 import vroong.laas.readmodel.common.repository.mongo.OrderProjectionMongoRepository;
 import vroong.laas.readmodel.common.repository.redis.OrderProjectionRedisRepository;
+// OrderTimelineService는 같은 패키지에 있음
+import vroong.laas.readmodel.projection.event.OrderEvent;
+import vroong.laas.readmodel.projection.event.DispatchEvent;
+import vroong.laas.readmodel.projection.event.DeliveryEvent;
 
 import java.util.Optional;
 
@@ -16,6 +20,7 @@ public class ProjectionService {
 
     private final OrderProjectionRedisRepository redisRepository;
     private final OrderProjectionMongoRepository mongoRepository;
+    private final OrderTimelineService orderTimelineService;
 
     /**
      * OrderProjection을 Redis와 MongoDB에 저장합니다.
@@ -145,5 +150,38 @@ public class ProjectionService {
                     orderId, e.getMessage(), e);
             return false;
         }
+    }
+    
+    /**
+     * OrderProjection과 Timeline을 함께 저장합니다.
+     */
+    public void saveOrderProjectionWithTimeline(OrderAggregate projection, OrderEvent orderEvent) {
+        // 1. Projection 저장
+        saveOrderProjection(projection);
+        
+        // 2. Timeline 저장
+        orderTimelineService.addOrderTimelineEvent(orderEvent);
+    }
+    
+    /**
+     * OrderProjection과 Timeline을 함께 저장합니다.
+     */
+    public void saveOrderProjectionWithTimeline(OrderAggregate projection, DispatchEvent dispatchEvent) {
+        // 1. Projection 저장
+        saveOrderProjection(projection);
+        
+        // 2. Timeline 저장
+        orderTimelineService.addDispatchTimelineEvent(dispatchEvent);
+    }
+    
+    /**
+     * OrderProjection과 Timeline을 함께 저장합니다.
+     */
+    public void saveOrderProjectionWithTimeline(OrderAggregate projection, DeliveryEvent deliveryEvent) {
+        // 1. Projection 저장
+        saveOrderProjection(projection);
+        
+        // 2. Timeline 저장
+        orderTimelineService.addDeliveryTimelineEvent(deliveryEvent);
     }
 }

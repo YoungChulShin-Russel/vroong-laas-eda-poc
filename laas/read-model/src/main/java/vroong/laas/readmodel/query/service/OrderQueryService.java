@@ -13,9 +13,14 @@ import vroong.laas.readmodel.query.client.dto.DispatchServiceResponse;
 import vroong.laas.readmodel.query.client.dto.OrderServiceResponse;
 import vroong.laas.readmodel.common.exception.OrderNotFoundException;
 import vroong.laas.readmodel.common.model.OrderAggregate;
+import vroong.laas.readmodel.common.model.OrderTimelineEvent;
 import vroong.laas.readmodel.common.repository.mongo.OrderProjectionMongoRepository;
+import vroong.laas.readmodel.common.repository.mongo.OrderTimelineDocument;
+import vroong.laas.readmodel.common.repository.mongo.OrderTimelineRepository;
 import vroong.laas.readmodel.common.repository.redis.OrderProjectionRedisRepository;
 import vroong.laas.readmodel.query.controller.response.OrderResponse;
+
+import java.util.List;
 
 import java.time.Instant;
 
@@ -30,8 +35,10 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class OrderQueryService {
 
-    private final OrderProjectionRedisRepository redisRepository;
-    private final OrderProjectionMongoRepository mongoRepository;
+    private final OrderProjectionRedisRepository orderRedisRepository;
+    private final OrderProjectionMongoRepository orderMongoRepository;
+    private final OrderTimelineRepository orderHistoryMongoRepository;
+
     private final OrderServiceClient orderServiceClient;
     private final DispatchServiceClient dispatchServiceClient;
     private final DeliveryServiceClient deliveryServiceClient;
@@ -65,12 +72,12 @@ public class OrderQueryService {
         log.debug("Querying Order Projection: orderId={}", orderId);
         
         // 1. Redis 캐시 조회
-        return redisRepository.findByOrderId(orderId)
+        return orderRedisRepository.findByOrderId(orderId)
                 .doOnNext(__ -> log.debug("Cache HIT (Redis): orderId={}", orderId))
                 // 2. MongoDB 조회 (Redis Miss)
                 .switchIfEmpty(Mono.defer(() -> {
                     log.debug("Cache MISS (Redis), trying MongoDB: orderId={}", orderId);
-                    return mongoRepository.findByOrderId(orderId)
+                    return orderMongoRepository.findByOrderId(orderId)
                             .doOnNext(projection -> {
                                 log.debug("Found in MongoDB: orderId={}", orderId);
                                 // MongoDB에서 찾았으면 Redis에 캐싱
@@ -208,7 +215,7 @@ public class OrderQueryService {
      * 목적: 다음 조회 시 Fallback을 거치지 않도록
      */
     private Mono<Void> saveFallbackData(OrderAggregate projection) {
-        return mongoRepository.save(projection)
+        return orderMongoRepository.save(projection)
                 .doOnSuccess(__ -> log.debug("Saved fallback data to MongoDB: orderId={}", projection.getOrderId()))
                 .doOnError(__ -> log.warn("Failed to save fallback data: orderId={}", projection.getOrderId()))
                 .onErrorResume(__ -> Mono.empty())  // 저장 실패는 무시
@@ -219,11 +226,32 @@ public class OrderQueryService {
      * MongoDB 결과를 Redis에 캐싱 (Fire and Forget)
      */
     private void cacheToRedis(Long orderId, OrderAggregate projection) {
-        redisRepository.save(projection)
+        orderRedisRepository.save(projection)
                 .doOnSuccess(__ -> log.debug("Cached to Redis: orderId={}", orderId))
                 .doOnError(__ -> log.warn("Failed to cache to Redis: orderId={}", orderId))
                 .onErrorResume(__ -> Mono.empty())  // 캐싱 실패는 무시
                 .subscribe();  // Fire and forget
+    }
+    
+    /**
+     * Order Timeline 조회
+     * 
+     * @param orderId Order ID
+     * @return Mono<List<OrderTimelineEvent>>
+     */
+    public Mono<List<OrderTimelineEvent>> getOrderTimeline(Long orderId) {
+        log.debug("Getting order timeline: orderId={}", orderId);
+        
+        return Mono.fromCallable(() -> {
+            List<OrderTimelineDocument> documents = orderHistoryMongoRepository.findByOrderIdOrderByTimestamp(orderId);
+            return documents.stream()
+                    .map(OrderTimelineDocument::toModel)
+                    .toList();
+        })
+                .doOnSuccess(timeline -> log.debug("Found {} timeline events for orderId={}", 
+                        timeline.size(), orderId))
+                .doOnError(e -> log.error("Failed to get order timeline: orderId={}, error={}", 
+                        orderId, e.getMessage()));
     }
 }
 
